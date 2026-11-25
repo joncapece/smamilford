@@ -1,0 +1,18 @@
+[
+  {
+    "id": "about",
+    "slug": "about",
+    "title": {
+      "en": "About Our Parish",
+      "es": "Acerca de nuestra parroquia",
+      "pt": "Sobre nossa paróquia"
+    },
+    "body": {
+      "en": "Saint Mary of the Assumption is a Roman Catholic parish in Milford, Massachusetts. Our community gathers in English, Spanish and Portuguese, and we are glad to welcome families and individuals of every background.\n\n## What we believe\n\nWe celebrate the sacraments, pray together, and serve one another and our neighbors. Mary, taken up body and soul into heaven, is our model of faithful discipleship.\n\n## Get involved\n\nThere are many ways to belong, from liturgy and music to outreach and youth ministry. See our [ministries](/ministries) or use the contact details at the bottom of any page.",
+      "es": "Santa María de la Asunción es una parroquia católica romana en Milford, Massachusetts. Nuestra comunidad se reúne en inglés, español y portugués, y nos alegra dar la bienvenida a familias y personas de todos los orígenes.\n\n## En qué creemos\n\nCelebramos los sacramentos, oramos juntos y servimos a los demás y a nuestros vecinos. María, llevada en cuerpo y alma al cielo, es nuestro modelo de discipulado fiel.\n\n## Participe\n\nHay muchas formas de pertenecer, desde la liturgia y la música hasta el apostolado y la pastoral juvenil. Vea nuestros [ministerios](/ministries).",
+      "pt": "Santa Maria da Assunção é uma paróquia católica romana em Milford, Massachusetts. Nossa comunidade se reúne em inglês, espanhol e português, e temos alegria em receber famílias e pessoas de todas as origens.\n\n## No que acreditamos\n\nCelebramos os sacramentos, rezamos juntos e servimos uns aos outros e ao próximo. Maria, elevada em corpo e alma ao céu, é nosso modelo de discipulado fiel.\n\n## Participe\n\nHá muitas formas de pertencer, da liturgia e da música ao apostolado e à pastoral juvenil. Veja nossos [ministérios](/ministries)."
+    },
+    "nav": true,
+    "order": 1
+  }
+]

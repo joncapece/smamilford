@@ -1,0 +1,42 @@
+{
+  "parish_name": {
+    "en": "Saint Mary of the Assumption",
+    "es": "Santa María de la Asunción",
+    "pt": "Santa Maria da Assunção"
+  },
+  "parish_subtitle": {
+    "en": "Roman Catholic Parish",
+    "es": "Parroquia Católica Romana",
+    "pt": "Paróquia Católica Romana"
+  },
+  "other_names": "Santa Maria da Assunção · Santa María de la Asunción",
+  "tagline": {
+    "en": "Milford, Massachusetts",
+    "es": "Milford, Massachusetts",
+    "pt": "Milford, Massachusetts"
+  },
+  "welcome": {
+    "en": "Welcome! Whether you are returning to the Church, visiting for the first time, or looking for a place to belong, you are welcome here.\n\nWe gather in English, Spanish and Portuguese, and we invite you to join us for Mass, our ministries and our parish life.",
+    "es": "¡Bienvenidos! Ya sea que regrese a la Iglesia, nos visite por primera vez o busque un lugar donde pertenecer, aquí es bienvenido.\n\nNos reunimos en inglés, español y portugués, y lo invitamos a acompañarnos en la Misa, en nuestros ministerios y en la vida parroquial.",
+    "pt": "Bem-vindos! Seja você alguém que está voltando para a Igreja, visitando pela primeira vez ou procurando um lugar para pertencer, você é bem-vindo aqui.\n\nNos reunimos em inglês, espanhol e português, e convidamos você a participar da Missa, de nossos ministérios e da vida paroquial."
+  },
+  "address": "",
+  "phone": "",
+  "email": "",
+  "office_hours": "",
+  "giving_url": "",
+  "giving_text": {
+    "en": "Your generosity helps us serve our community. Thank you for supporting our parish.",
+    "es": "Su generosidad nos ayuda a servir a nuestra comunidad. Gracias por apoyar a nuestra parroquia.",
+    "pt": "Sua generosidade nos ajuda a servir à nossa comunidade. Obrigado por apoiar nossa paróquia."
+  },
+  "facebook_url": "",
+  "youtube_url": "",
+  "instagram_url": "",
+  "footer_note": {
+    "en": "All are welcome.",
+    "es": "Todos son bienvenidos.",
+    "pt": "Todos são bem-vindos."
+  },
+  "timezone": "America/New_York"
+}
