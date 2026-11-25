@@ -25,6 +25,9 @@ function site(ctx) {
 }
 
 // Main menu: links, and groups that open to show more links.
+// Changes each time the server starts, so browsers load fresh CSS and scripts after an update.
+const ASSET_VERSION = Date.now().toString(36);
+
 const NAV = [
   { href: '/', key: 'home' },
   { group: 'navAbout', items: [
@@ -83,7 +86,7 @@ export function layout(ctx, { title, description = '', body, path = '/', image =
 <meta property="og:type" content="website">
 <meta property="og:image" content="${esc(image || '/img/emblem.webp')}">
 <link rel="icon" href="/img/emblem.png" type="image/png">
-<link rel="stylesheet" href="/css/site.css">
+<link rel="stylesheet" href="/css/site.css?v=${ASSET_VERSION}">
 </head>
 <body>
 <a class="skip-link" href="#main">${esc(t.skip)}</a>
@@ -264,8 +267,8 @@ function livePopup(ctx, live) {
   <video class="live-video" controls playsinline preload="metadata" data-src="${esc(url)}"></video>
   <p class="muted live-note">${esc(ctx.t.liveNote)}</p>
 </div>
-<script src="/js/vendor/hls.min.js" defer></script>
-<script src="/js/live.js" defer></script>`;
+<script src="/js/vendor/hls.min.js?v=${ASSET_VERSION}" defer></script>
+<script src="/js/live.js?v=${ASSET_VERSION}" defer></script>`;
 }
 
 export function contactPage(ctx) {
@@ -291,7 +294,7 @@ export function liveStreamingPage(ctx) {
   const body = pageHead(t.liveStreaming) +
     section(`<div class="live-page">${player}</div>`) +
     (archive ? section(`<h2>${esc(t.archiveTitle)}</h2>${archive}`) : '') +
-    (url ? '<script src="/js/vendor/hls.min.js" defer></script><script src="/js/player.js" defer></script>' : '');
+    (url ? `<script src="/js/vendor/hls.min.js?v=${ASSET_VERSION}" defer></script><script src="/js/player.js?v=${ASSET_VERSION}" defer></script>` : '');
   return layout(ctx, { title: t.liveStreaming, path: '/live-streaming', body });
 }
 
