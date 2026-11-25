@@ -241,6 +241,18 @@ test('the live pop-up is for streamed Masses only, during the Mass', () => {
   assert.equal(liveMass([oneTime], 'America/New_York', 90, { date: '2026-11-29', dow: 0, minutes: 19 * 60 + 15 }), oneTime);
 });
 
+test('Mass times always show earliest to latest, whatever order they were entered in', async () => {
+  const add = (time) => admin('/admin/api/mass_times', { method: 'POST', json: { section: 'lords_day', weekday: 'sunday', time, language: 'en' } });
+  await add('3:20 PM');
+  await add('6:15 AM');
+  await add('11:45 AM');
+  const page = await (await fetch(`${base}/mass-times`)).text();
+  const a = page.indexOf('6:15 AM');
+  const b = page.indexOf('11:45 AM');
+  const c = page.indexOf('3:20 PM');
+  assert.ok(a > 0 && b > a && c > b, 'times are in order from earliest to latest');
+});
+
 test('a photo placed in page text keeps its description and shows on the site', async () => {
   const saved = await admin('/admin/api/pages', {
     method: 'POST',

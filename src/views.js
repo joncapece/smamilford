@@ -1,7 +1,7 @@
 // HTML for every public page. Everything from the editor goes through esc() or markdown().
 
 import { LANG_OPTIONS, LANGS } from './schema.js';
-import { WEEKDAYS } from './masses.js';
+import { WEEKDAYS, sortMasses } from './masses.js';
 import { esc, pick, markdown, fmtDate } from './util.js';
 
 const DEFAULT_NAME = 'Saint Mary of the Assumption';
@@ -317,6 +317,7 @@ ${s.giving ? `<section class="band"><div class="wrap">
 
 export function massTimesPage(ctx, items) {
   const { t } = ctx;
+  items = sortMasses(items);
   const groups = [
     { title: t.lordsDay, items: items.filter((m) => m.section !== 'weekday') },
     { title: t.weekdayLiturgies, items: items.filter((m) => m.section === 'weekday') },

@@ -160,7 +160,7 @@ export const collections = {
   mass_times: {
     label: 'Mass & Service Times',
     singular: 'time',
-    sortBy: 'order',
+    sortBy: 'schedule',
     list: ['section', 'weekday', 'date', 'time', 'language'],
     fields: [
       { key: 'section', label: 'Section', type: 'select', required: true, options: MASS_SECTION_OPTIONS, help: 'Lord\'s Day Masses are on Saturday and Sunday. Weekday Liturgies are Monday to Friday.' },
@@ -171,7 +171,6 @@ export const collections = {
       { key: 'streamed', label: 'Live streamed', type: 'boolean', help: 'Shows the live stream pop-up on the home page during this Mass.' },
       { key: 'location', label: 'Place (optional)', type: 'text', help: 'For example: Church, Parish Hall, Chapel' },
       { key: 'note', label: 'Note (optional)', type: 'text', i18n: true },
-      orderField('Order in the list.'),
     ],
   },
 };

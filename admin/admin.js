@@ -68,7 +68,21 @@ const SORT = {
   order: (a, b) => (a.order ?? 9999) - (b.order ?? 9999) || pickText(a.title ?? a.name ?? a.day).localeCompare(pickText(b.title ?? b.name ?? b.day)),
   'date-asc': (a, b) => (a.date || '').localeCompare(b.date || ''),
   'date-desc': (a, b) => (b.date || '').localeCompare(a.date || ''),
+  schedule: (a, b) => scheduleKey(a) - scheduleKey(b) || scheduleTime(a) - scheduleTime(b),
 };
+
+// Lists Mass times in the order they happen: weekly by day (Sunday first), then one-time by date.
+const WEEK = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+function scheduleKey(m) {
+  if (m.date) return 100000 + Date.parse(m.date) / 864e5;
+  const i = WEEK.indexOf(m.weekday);
+  return i >= 0 ? i : 1000;
+}
+function scheduleTime(m) {
+  const t = /^\s*(\d{1,2})(?::(\d{2}))?\s*([ap])/i.exec(m.time || '');
+  if (!t) return 9999;
+  return ((Number(t[1]) % 12) + (t[3].toLowerCase() === 'p' ? 12 : 0)) * 60 + Number(t[2] || 0);
+}
 
 async function renderList(name) {
   const c = collection(name);

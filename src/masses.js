@@ -66,3 +66,23 @@ export function liveMass(items, timeZone, length = 90, now = nowIn(timeZone)) {
     return WEEKDAYS.includes(m.weekday) && WEEKDAYS.indexOf(m.weekday) === now.dow;
   });
 }
+
+// Mass times in the order they happen: weekly Masses by day (Sunday first) then by time,
+// then one-time Masses by date and time. Entries without a day or date go last.
+export function sortMasses(items) {
+  const key = (m) => {
+    const mins = parseTime(m.time) ?? 9999;
+    if (m.date) return [2, m.date, mins];
+    if (WEEKDAYS.includes(m.weekday)) return [1, WEEKDAYS.indexOf(m.weekday), mins];
+    return [3, '', mins];
+  };
+  return [...items].sort((a, b) => {
+    const ka = key(a);
+    const kb = key(b);
+    for (let i = 0; i < 3; i++) {
+      if (ka[i] < kb[i]) return -1;
+      if (ka[i] > kb[i]) return 1;
+    }
+    return 0;
+  });
+}

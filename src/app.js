@@ -171,7 +171,7 @@ export function createApp(options = {}) {
     send(res, build(ctx, await store.listRecords(collection), ctx));
   }));
 
-  listRoute('/mass-times', 'mass_times', (ctx, items) => views.massTimesPage(ctx, sortRecords(items, 'order')));
+  listRoute('/mass-times', 'mass_times', (ctx, items) => views.massTimesPage(ctx, items));
   listRoute('/events', 'events', (ctx, items) => views.eventsPage(ctx, upcomingEvents(items, ctx.today)));
   listRoute('/announcements', 'announcements', (ctx, items) =>
     views.announcementsPage(ctx, activeAnnouncements(items, ctx.today)));
