@@ -437,3 +437,6 @@ tbody tr:nth-child(even) { background: var(--cream); }
 .quick-edit .qe-head { display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 1rem; background: var(--navy); color: #fff; font-weight: 700; }
 .quick-edit .qe-head button { background: #fff; color: var(--navy); border: 0; border-radius: 6px; padding: 0.35rem 0.8rem; font: inherit; font-weight: 700; cursor: pointer; }
 .quick-edit iframe { display: block; width: 100%; height: calc(88vh - 48px); border: 0; background: #fff; }
+
+.staff-heading { margin: 2rem 0 1rem; }
+.staff-heading:first-child { margin-top: 0; }

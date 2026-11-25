@@ -333,6 +333,17 @@ test('a page on the site offers to edit that page', async () => {
   assert.doesNotMatch(visitor, /data-edit=/);
 });
 
+test('clergy are listed first in their own section on the staff page', async () => {
+  const add = (body) => admin('/admin/api/staff', { method: 'POST', json: body });
+  assert.equal((await add({ name: 'Test Staffer', role: { en: 'Office' }, group: 'staff', order: 1 })).status, 200);
+  assert.equal((await add({ name: 'Father Test Priest', role: { en: 'Pastor' }, group: 'clergy', order: 9 })).status, 200);
+  const html = await (await fetch(`${base}/staff`)).text();
+  const clergyAt = html.indexOf('Father Test Priest');
+  const staffAt = html.indexOf('Test Staffer');
+  assert.ok(clergyAt > 0 && staffAt > clergyAt, 'clergy card comes before staff card');
+  assert.ok(html.indexOf('>Clergy<') < clergyAt && html.indexOf('>Clergy<') > 0, 'Clergy heading present');
+});
+
 test('tables made in the editor show on the site, and scripts inside them are removed', async () => {
   const body = '<table data-row="r1" style="width: 400px"><tbody><tr data-row="r1"><th data-row="r1" data-cell="c1" colspan="2">Mass</th></tr>' +
     '<tr data-row="r2"><td data-row="r2" data-cell="c2">Sunday</td><td data-row="r2" data-cell="c3"><script>alert(1)</script>9:00</td></tr></tbody></table>';

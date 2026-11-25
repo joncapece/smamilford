@@ -439,9 +439,16 @@ export function bulletinsPage(ctx, items) {
 }
 
 export function staffPage(ctx, items) {
-  const body = items.length
-    ? `<div class="grid-3">${items.map((p) => staffCard(ctx, p)).join('')}</div>`
-    : empty(ctx.t.noStaff);
+  // Clergy always come first, in their own section; everyone else follows under Staff.
+  const clergy = items.filter((p) => p.group === 'clergy');
+  const staff = items.filter((p) => p.group !== 'clergy');
+  const grid = (list) => `<div class="grid-3">${list.map((p) => staffCard(ctx, p)).join('')}</div>`;
+  const body = !items.length
+    ? empty(ctx.t.noStaff)
+    : [
+      clergy.length ? `<h2 class="staff-heading">${esc(ctx.t.clergy)}</h2>${grid(clergy)}` : '',
+      staff.length ? `${clergy.length ? `<h2 class="staff-heading">${esc(ctx.t.staff)}</h2>` : ''}${grid(staff)}` : '',
+    ].join('');
   return layout(ctx, { title: ctx.t.staff, path: '/staff', body: pageHead(ctx.t.staff) + section(body) });
 }
 

@@ -6,6 +6,11 @@
 
 export const LANGS = ['en', 'es', 'pt'];
 
+export const STAFF_SECTION_OPTIONS = [
+  { value: 'staff', label: 'Staff' },
+  { value: 'clergy', label: 'Clergy' },
+];
+
 export const MASS_SECTION_OPTIONS = [
   { value: 'lords_day', label: "Lord's Day (Saturday/Sunday)" },
   { value: 'weekday', label: 'Weekday Liturgies' },
@@ -134,9 +139,10 @@ export const collections = {
     label: 'Staff & Leaders',
     singular: 'person',
     sortBy: 'order',
-    list: ['name', 'role'],
+    list: ['name', 'group', 'role'],
     fields: [
       { key: 'name', label: 'Name', type: 'text', required: true },
+      { key: 'group', label: 'Section', type: 'select', options: STAFF_SECTION_OPTIONS, help: 'Clergy are always listed first, in their own section. Everyone else is listed under Staff.' },
       { key: 'role', label: 'Role or title', type: 'text', i18n: true },
       { key: 'email', label: 'Email', type: 'email' },
       { key: 'phone', label: 'Phone', type: 'text' },
