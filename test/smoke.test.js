@@ -277,7 +277,7 @@ test('the main menu groups pages under About Us and Worship, and a Contact page 
   assert.match(await contact.text(), /Contact/);
 });
 
-test('sub-pages appear under their parent in the main menu', async () => {
+test('sub-pages are not in the main menu, only in the side menu', async () => {
   const add = (body) => admin('/admin/api/pages', { method: 'POST', json: body });
   assert.equal((await add({ slug: 'baptism', title: { en: 'Baptism' }, body: { en: 'Info.' }, parent: 'sacraments', order: 1 })).status, 200);
   assert.equal((await add({ slug: 'sacraments', title: { en: 'Sacraments' }, body: { en: 'Overview.' }, order: 3 })).status, 200);
@@ -285,7 +285,8 @@ test('sub-pages appear under their parent in the main menu', async () => {
   const parentField = schema.collections.find((c) => c.key === 'pages').fields.find((f) => f.key === 'parent');
   assert.ok(parentField.options.some((o) => o.value === 'sacraments'), 'pages appear as choices');
   const home = await (await fetch(`${base}/`)).text();
-  assert.match(home, /<div class="nav-sub"><a href="\/baptism"/);
+  assert.doesNotMatch(home, /href="\/baptism"/);
+  assert.doesNotMatch(home, /nav-sub/);
 });
 
 test('a page with sub-pages shows a side menu listing them', async () => {

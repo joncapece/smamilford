@@ -54,15 +54,8 @@ export function layout(ctx, { title, description = '', body, path = '/', image =
   const desc = description || s.tagline || s.name;
   const current = (href) => (href === path ? ' aria-current="page"' : '');
 
-  // A menu link, followed by any sub-pages of that page (set with "Sub-page of" in the editor).
-  const link = (item) => {
-    const id = item.href.slice(1);
-    const kids = id ? pages.filter((p) => p.parent === id && p.id !== id) : [];
-    const a = `<a href="${item.href}"${current(item.href)}>${esc(t[item.key])}</a>`;
-    if (!kids.length) return a;
-    const subs = kids.map((p) => `<a href="/${esc(p.id)}"${current(`/${p.id}`)}>${esc(pick(p.title, lang))}</a>`).join('');
-    return `<div class="nav-item">${a}<div class="nav-sub">${subs}</div></div>`;
-  };
+  // A menu link. Sub-pages (set with "Sub-page of" in the editor) are not listed here; they appear in the side menu.
+  const link = (item) => `<a href="${item.href}"${current(item.href)}>${esc(t[item.key])}</a>`;
   const navLinks = NAV.map((item) => {
     if (!item.group) return link(item);
     const active = item.items.some((i) => i.href === path) ? ' class="active"' : '';
