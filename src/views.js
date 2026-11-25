@@ -125,6 +125,7 @@ ${body}
   </div>
   <p class="wrap footer-legal">© ${new Date().getFullYear()} ${esc(s.name)}. ${esc(pick(settings.footer_note, lang, ''))} ${esc(t.rights)}</p>
 </footer>
+<script src="/js/nav.js?v=${ASSET_VERSION}" defer></script>
 </body>
 </html>`;
 }
