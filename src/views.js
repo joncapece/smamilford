@@ -319,9 +319,13 @@ export function ministriesPage(ctx, items) {
 }
 
 export function bulletinsPage(ctx, items) {
-  const body = items.length
-    ? `<ul class="bulletins">${items.map((b) => bulletinRow(ctx, b)).join('')}</ul>`
-    : empty(ctx.t.noBulletins);
+  // Embed code from settings replaces the uploaded bulletin list when it is filled in.
+  const embed = ctx.settings?.bulletin_embed;
+  const body = embed
+    ? `<div class="bulletin-embed">${embed}</div>`
+    : items.length
+      ? `<ul class="bulletins">${items.map((b) => bulletinRow(ctx, b)).join('')}</ul>`
+      : empty(ctx.t.noBulletins);
   return layout(ctx, { title: ctx.t.bulletins, path: '/bulletins', body: pageHead(ctx.t.bulletins) + section(body) });
 }
 

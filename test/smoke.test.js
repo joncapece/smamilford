@@ -205,6 +205,18 @@ test('home page photos can show a caption heading and text', async () => {
   assert.match(html, /<div class="slide-caption"><h2>Welcome Home<\/h2><p>Sunday Mass at 9 AM<\/p><\/div>/);
 });
 
+test('the Bulletins page can show embed code from settings instead of uploaded files', async () => {
+  const code = '<iframe id="LPI.Pub.Widget.v1" src="https://parishesonline.com/publicationWidget?type=bulletin"></iframe>';
+  const current = await (await admin('/admin/api/settings')).json();
+  const save = (value) => admin('/admin/api/settings', { method: 'PUT', json: { ...current, bulletin_embed: value } });
+  assert.equal((await save(code)).status, 200);
+  const page = await (await fetch(`${base}/bulletins`)).text();
+  assert.ok(page.includes(code), 'embed code is shown as pasted');
+  assert.equal((await save('')).status, 200);
+  const after = await (await fetch(`${base}/bulletins`)).text();
+  assert.ok(!after.includes('parishesonline'), 'embed is removed when cleared');
+});
+
 test('a photo placed in page text keeps its description and shows on the site', async () => {
   const saved = await admin('/admin/api/pages', {
     method: 'POST',
