@@ -114,6 +114,18 @@ function fieldHtml(f, val, opts) {
   const help = f.help ? `<small class="help">${esc(f.help)}</small>` : '';
   const label = `${esc(f.label)}${f.required ? ' <span aria-hidden="true">*</span>' : ''}`;
 
+  if (f.i18n && schema.translation) {
+    // Translation is on: people type English only. Spanish and Portuguese are kept as hidden
+    // values, so saving doesn't re-translate text that hasn't changed.
+    const obj = typeof val === 'string' ? { en: val } : val || {};
+    const multiline = f.type === 'markdown' || f.type === 'textarea';
+    const control = multiline
+      ? `<textarea name="${f.key}.en" rows="${f.type === 'markdown' ? 6 : 3}" lang="en">${esc(obj.en)}</textarea>`
+      : `<input type="text" name="${f.key}.en" value="${esc(obj.en)}" lang="en"${f.required ? ' required' : ''}>`;
+    const hidden = ['es', 'pt'].map((l) => `<input type="hidden" name="${f.key}.${l}" value="${esc(obj[l])}">`).join('');
+    return `<fieldset class="i18n"><legend>${label}</legend>${help}<label class="lang-field one"><span>English</span>${control}</label><p class="help">Spanish and Portuguese are filled in automatically when you save.</p>${hidden}</fieldset>`;
+  }
+
   if (f.i18n) {
     const obj = typeof val === 'string' ? { en: val } : val || {};
     const multiline = f.type === 'markdown' || f.type === 'textarea';

@@ -70,6 +70,10 @@ export async function fillTranslations(fields, record, prev) {
   const jobs = {}; // lang -> [{ field, en }]
 
   for (const field of fields.filter((f) => f.i18n)) {
+    if (translationEnabled() && !record[field.key]?.en) {
+      delete record[field.key]; // no English, so no translation either
+      continue;
+    }
     const { need, keep } = plan(field, record, prev);
     for (const [lang, old] of Object.entries(keep)) {
       (auto[field.key] ??= {})[lang] = old;
@@ -90,7 +94,7 @@ export async function fillTranslations(fields, record, prev) {
       });
     } catch (err) {
       console.error(`Automatic translation to ${LANG_NAME[lang]} failed:`, err.message);
-      warnings.push(`Automatic ${LANG_NAME[lang]} translation failed (${err.message}). Please type it in, or try saving again.`);
+      warnings.push(`Automatic ${LANG_NAME[lang]} translation failed (${err.message}). Save again to retry.`);
     }
   }
 

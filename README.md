@@ -20,7 +20,7 @@ Everything is in `/admin`:
 | **Home page photos** | Photos that rotate in the main section of the home page |
 | **Pages** | Any new page, e.g. "Sacraments" at `/sacraments`. Tick "Show in the main menu" to add it to the menu |
 
-Each text field has three boxes (English, Español, Português). Type English, and the Spanish and Portuguese boxes are filled in automatically if a translation key is set (see below). You can always edit them. Anything left blank falls back to English.
+Each text field has three boxes (English, Español, Português). Type English. When automatic translation is on (see below), the Spanish and Portuguese are filled in for you and there are no boxes to type them in. Without a key, the Spanish and Portuguese boxes appear, and anything left blank falls back to English.
 
 Formatting in long text fields uses simple Markdown: blank line between paragraphs, `**bold**`, `*italic*`, `[link text](https://...)`, `## Heading`, and `- bullet points`. Scripts and unsafe HTML are removed automatically.
 
@@ -34,13 +34,12 @@ Staff type in English. When a record is saved, any blank Spanish or Portuguese b
   systemctl restart stmary-site
   ```
   Free-plan keys (ending in `:fx`) are detected automatically. The key stays on the server and is never written into the content files or the code.
-- **It never overwrites a person's text.** Only blank boxes are filled. If someone types their own Spanish or Portuguese, it is kept.
-- **Machine translations are marked** with "auto-translated: please check" in the editor. Edit them whenever you like. Once you edit one, it is treated as your own text.
+- Translations are generated from the English only. They are not editable in the editor, so the English is the single source of text.
 - **If the English changes**, an untouched machine translation is redone. A translation someone has edited is kept.
 - **If the service is unavailable**, the save still goes through, and the editor shows a message saying which translation failed.
 - Without a key, nothing is translated. The English text shows in the other languages until someone types the translation.
 
-Machine translation is a good first draft, not a replacement for a native speaker. Ask someone who speaks Spanish or Portuguese to check anything important (such as the Mass times and the welcome message) before it goes live.
+Machine translation is a good first draft, not a replacement for a native speaker. Ask someone who speaks Spanish or Portuguese to review important text (such as the Mass times and the welcome message), and fix it by changing the English wording, which is then retranslated.
 
 ## Rotating photos on the home page
 
