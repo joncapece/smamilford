@@ -123,6 +123,14 @@ h3 { font-size: 1.25rem; }
 }
 .hero h1 { color: #fff; margin-bottom: 0.3em; }
 .hero-inner { display: grid; grid-template-columns: 1.3fr 0.7fr; gap: 2.5rem; align-items: center; }
+.hero-inner { position: relative; z-index: 1; }
+.hero-bg { position: absolute; inset: 0; z-index: 0; }
+.hero-bg .slides { position: absolute; inset: 0; aspect-ratio: auto; }
+.hero-bg .slide img { border-radius: 0; }
+.hero-bg::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(90deg, rgba(10, 24, 56, 0.92) 0%, rgba(10, 24, 56, 0.72) 50%, rgba(10, 24, 56, 0.4) 100%);
+}
 .eyebrow {
   text-transform: uppercase; letter-spacing: 0.18em; font-size: 0.8rem;
   color: var(--gold); font-weight: 700; margin-bottom: 0.75rem;
@@ -156,6 +164,7 @@ h3 { font-size: 1.25rem; }
 @media (max-width: 820px) {
   .hero-inner { grid-template-columns: 1fr; }
   .hero-emblem { order: -1; width: 200px; }
+  .hero-bg::after { background: rgba(10, 24, 56, 0.85); }
 }
 
 /* gold divider with a diamond, echoing the rules in the logo */

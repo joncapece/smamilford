@@ -185,10 +185,7 @@ const empty = (text) => `<p class="empty">${esc(text)}</p>`;
 // Home page photos: each one fades in and out in turn. Pure CSS, so it works without JavaScript.
 // With reduced motion on, only the first photo is shown.
 const SLIDE_SECONDS = 6;
-function heroVisual(ctx, slides) {
-  if (!slides.length) {
-    return '<div class="hero-emblem"><img src="/img/emblem.webp" alt="" width="520" height="520"></div>';
-  }
+function heroSlides(ctx, slides) {
   const n = slides.length;
   const total = n * SLIDE_SECONDS;
   const w = 100 / n;
@@ -201,7 +198,20 @@ function heroVisual(ctx, slides) {
     const anim = n > 1 ? ` style="animation:rot-${n} ${total}s linear ${i * SLIDE_SECONDS}s infinite"` : ' style="opacity:1"';
     return `<div class="slide"${anim}>${inner}</div>`;
   }).join('');
-  return `<style>${keyframes}</style><div class="hero-emblem hero-photos"><div class="slides" aria-live="off">${items}</div></div>`;
+  return `<style>${keyframes}</style><div class="slides" aria-live="off">${items}</div>`;
+}
+
+// Photos fill the whole hero block behind the text; the emblem shows when there are none.
+function heroBackground(ctx, slides) {
+  if (!slides.length) return '';
+  return `<div class="hero-bg">${heroSlides(ctx, slides)}</div>`;
+}
+
+function heroVisual(ctx, slides) {
+  if (!slides.length) {
+    return '<div class="hero-emblem"><img src="/img/emblem.webp" alt="" width="520" height="520"></div>';
+  }
+  return '';
 }
 
 export function home(ctx, d) {
@@ -209,6 +219,7 @@ export function home(ctx, d) {
   const s = site(ctx);
   const body = `
 <section class="hero" aria-labelledby="hero-title">
+  ${heroBackground(ctx, d.slides || [])}
   <div class="wrap hero-inner">
     <div class="hero-text">
       ${s.tagline ? `<p class="eyebrow">${esc(s.tagline)}</p>` : ''}
