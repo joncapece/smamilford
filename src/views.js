@@ -241,6 +241,20 @@ function heroVisual(ctx, slides) {
   return '';
 }
 
+// Pop-up with the live stream, shown on the home page while a streamed Mass is in progress.
+function livePopup(ctx, live) {
+  const url = ctx.settings.stream_url;
+  if (!live || !url) return '';
+  return `<div class="live-popup" id="live-popup" role="dialog" aria-labelledby="live-title">
+  <div class="live-head"><p id="live-title"><span class="live-dot" aria-hidden="true"></span>${esc(ctx.t.liveNow)}</p>
+  <button type="button" class="live-close" aria-label="${esc(ctx.t.liveClose)}">×</button></div>
+  <video class="live-video" controls playsinline preload="metadata" data-src="${esc(url)}"></video>
+  <p class="muted live-note">${esc(ctx.t.liveNote)}</p>
+</div>
+<script src="/js/vendor/hls.min.js" defer></script>
+<script src="/js/live.js" defer></script>`;
+}
+
 export function home(ctx, d) {
   const { t, lang, settings } = ctx;
   const s = site(ctx);
@@ -264,6 +278,7 @@ export function home(ctx, d) {
   </div>
 </section>
 <div class="fleur" aria-hidden="true"><span></span><i></i><span></span></div>
+${livePopup(ctx, d.live)}
 
 ${section(massHome(ctx, d.massTimes))}
 

@@ -5,7 +5,7 @@ import multer from 'multer';
 import { fileURLToPath } from 'node:url';
 import { UI } from './i18n.js';
 import { LANGS, collections, settingsFields, RESERVED_SLUGS } from './schema.js';
-import { homeSchedule } from './masses.js';
+import { homeSchedule, liveMass } from './masses.js';
 import * as store from './content.js';
 import * as views from './views.js';
 import { translationEnabled } from './translate.js';
@@ -85,6 +85,8 @@ export function createApp(options = {}) {
 
   app.use('/css', express.static(path.join(PUBLIC_DIR, 'css'), { maxAge: '1d' }));
   app.use('/img', express.static(path.join(PUBLIC_DIR, 'img'), { maxAge: '7d' }));
+  app.use('/js', express.static(path.join(PUBLIC_DIR, 'js'), { maxAge: '1d' }));
+  app.use('/js/vendor', express.static(path.join(ROOT, 'node_modules', 'hls.js', 'dist'), { maxAge: '7d' }));
   app.use('/uploads', express.static(store.UPLOAD_DIR, { maxAge: '1d', index: false, dotfiles: 'ignore' }));
   app.get('/healthz', (req, res) => res.type('text').send('ok'));
 
@@ -156,6 +158,7 @@ export function createApp(options = {}) {
     send(res, views.home(ctx, {
       slides: sortRecords(slides.filter((x) => x.image && !x.hidden), 'order'),
       massTimes: homeSchedule(mass, ctx.settings.timezone),
+      live: liveMass(mass, ctx.settings.timezone),
       events: upcomingEvents(events, ctx.today).slice(0, 3),
       announcements: activeAnnouncements(anns, ctx.today).slice(0, 3),
       ministries: sortRecords(ministries, 'order').slice(0, 3),

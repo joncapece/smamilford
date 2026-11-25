@@ -9,6 +9,7 @@ const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'stmary-test-'));
 process.env.CONTENT_DIR = dir;
 
 const { ensureSeeded } = await import('../src/content.js');
+const { liveMass } = await import('../src/masses.js');
 const { createApp } = await import('../src/app.js');
 await ensureSeeded();
 
@@ -227,6 +228,17 @@ test('home page lists upcoming Masses only, with a link to the full schedule', a
   assert.doesNotMatch(html, /Old holy day/);
   assert.match(html, /View full Mass schedule/);
   assert.match(html, /href="\/mass-times"/);
+});
+
+test('the live pop-up is for streamed Masses only, during the Mass', () => {
+  const sunday9 = { section: 'lords_day', weekday: 'sunday', time: '9:00 AM', streamed: true };
+  const today = { date: '2026-11-29', dow: 0, minutes: 9 * 60 + 30 };
+  assert.equal(liveMass([sunday9], 'America/New_York', 90, today), sunday9);
+  assert.equal(liveMass([sunday9], 'America/New_York', 90, { ...today, minutes: 11 * 60 }), undefined, 'after the Mass has ended');
+  assert.equal(liveMass([{ ...sunday9, streamed: false }], 'America/New_York', 90, today), undefined, 'not streamed');
+  assert.equal(liveMass([{ ...sunday9, weekday: 'monday' }], 'America/New_York', 90, today), undefined, 'a different day');
+  const oneTime = { section: 'weekday', date: '2026-11-29', time: '7:00 PM', streamed: true };
+  assert.equal(liveMass([oneTime], 'America/New_York', 90, { date: '2026-11-29', dow: 0, minutes: 19 * 60 + 15 }), oneTime);
 });
 
 test('a photo placed in page text keeps its description and shows on the site', async () => {

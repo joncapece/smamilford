@@ -55,3 +55,14 @@ export function homeSchedule(items, timeZone) {
     special: special.sort((a, b) => a.when.localeCompare(b.when) || byTime(a, b)).map((x) => x.m),
   };
 }
+
+// The streamed Mass in progress right now, if any. A Mass counts as live for `length` minutes after it starts.
+export function liveMass(items, timeZone, length = 90, now = nowIn(timeZone)) {
+  return items.find((m) => {
+    if (!m.streamed) return false;
+    const start = parseTime(m.time);
+    if (start === null || now.minutes < start || now.minutes >= start + length) return false;
+    if (m.date) return m.date === now.date;
+    return WEEKDAYS.includes(m.weekday) && WEEKDAYS.indexOf(m.weekday) === now.dow;
+  });
+}
