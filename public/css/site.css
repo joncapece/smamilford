@@ -313,7 +313,7 @@ tbody tr:nth-child(even) { background: var(--cream); }
 /* ---- embedded bulletin widget ---- */
 .bulletin-embed { width: 100%; max-width: 960px; margin: 0 auto; }
 .bulletin-embed iframe {
-  display: block; width: 100% !important; height: 760px !important; min-height: 760px !important;
+  display: block; width: 100% !important; height: 900px !important; min-height: 900px !important;
   border: 1px solid #e3e7ef; border-radius: 12px; background: #fff;
 }
 @media (max-width: 820px) {
