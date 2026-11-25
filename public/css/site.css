@@ -324,8 +324,19 @@ tbody tr:nth-child(even) { background: var(--cream); }
 .mass-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 0.5rem 1.5rem; margin-bottom: 1.25rem; }
 .mass-head h2 { margin: 0; }
 .mass-head a { font-weight: 600; }
-.schedule th[scope="row"] { width: 11rem; color: var(--navy); white-space: nowrap; }
-.sched-times { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 0.45rem 1.4rem; }
-.sched-times li { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem 0.5rem; }
-.sched-times .time { font-weight: 600; font-variant-numeric: tabular-nums; }
+.schedule th[scope="row"] { width: 10rem; color: var(--navy); white-space: nowrap; }
+.schedule th, .schedule td { padding: 0.85rem 1rem; vertical-align: middle; }
+.sched-times { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.sched-times li {
+  display: inline-flex; flex-wrap: wrap; align-items: center; gap: 0.25rem 0.5rem;
+  background: #f4f6fa; border: 1px solid #e3e7ef; border-radius: 999px; padding: 0.3rem 0.85rem;
+}
+.sched-times .time { font-weight: 700; color: var(--navy); font-variant-numeric: tabular-nums; }
+.sched-times .muted { font-size: 0.92rem; }
+@media (max-width: 820px) {
+  .schedule thead { display: none; }
+  .schedule, .schedule tbody, .schedule tr, .schedule th, .schedule td { display: block; width: 100%; }
+  .schedule th[scope="row"] { width: auto; padding-bottom: 0.25rem; }
+  .schedule td { padding-top: 0.25rem; }
+}
 .grid-2 { display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
