@@ -18,7 +18,7 @@ Everything is in `/admin`:
 | **Staff & Leaders** | Name, role, email, phone, photo |
 | **Bulletins** | Upload the weekly PDF with its date. The most recent one is featured on the home page |
 | **Home page photos** | Photos that rotate in the main section of the home page |
-| **Quick editing** | Signed in to the editor once in a browser, the public site shows an “Edit website” button. It opens the editor over the page, so staff can edit text, add events and announcements, and change settings without leaving the site. |
+| **Quick editing** | Signed-in staff see an “Edit website” button on the public site. It opens the editor over the page, so staff can edit text, add events and announcements, and change settings without leaving the site. |
 | **Pages** | Any new page, e.g. "Sacraments" at `/sacraments`. Tick "Show in the main menu" to add it to the menu |
 
 Each text field has three boxes (English, Español, Português). Type English. When automatic translation is on (see below), the Spanish and Portuguese are filled in for you and there are no boxes to type them in. Without a key, the Spanish and Portuguese boxes appear, and anything left blank falls back to English.
@@ -194,3 +194,26 @@ To add a new kind of content (for example, "Adult Faith Formation classes"), add
 - No Mass times, events, ministries or staff are included yet. Add them in the editor.
 - The street address, phone, email and giving link are blank in the starter settings. Fill them in under **Site settings**.
 - Keep photos reasonably sized (under a few MB). The site resizes them in the browser, but smaller files load faster.
+
+
+## Staff sign-in (Microsoft Entra)
+
+Staff sign in from the “Staff sign-in” link at the bottom of the website, with their parish Microsoft account.
+
+**Set up the app in Microsoft Entra (Azure portal, Microsoft Entra ID):**
+1. *App registrations* → *New registration*. Name it "St. Mary website". Choose *Accounts in this organizational directory only*.
+2. Redirect URI (type *Web*): `https://YOUR-DOMAIN/auth/callback` (exactly the address of the site).
+3. *Certificates & secrets* → *New client secret*. Copy the value now; it is shown once.
+4. *App roles* → create two roles, each allowed for *Users/Groups*: display name `Admin`, value `Admin`; and display name `Editor`, value `Editor`.
+5. *Enterprise applications* → this app → *Properties* → set *Assignment required?* to **Yes**, then *Users and groups* → add the people who should edit, each with a role (Admin or Editor).
+
+**Give the website the details.** Add these lines to `/etc/stmary-site.env` on the server, then run `systemctl restart stmary-site`:
+
+```
+ENTRA_TENANT_ID=<Directory (tenant) ID from the app's Overview page>
+ENTRA_CLIENT_ID=<Application (client) ID from the app's Overview page>
+ENTRA_CLIENT_SECRET=<the secret value from step 3>
+PUBLIC_URL=https://YOUR-DOMAIN
+```
+
+The site owner can still sign in with `ADMIN_USER` and `ADMIN_PASSWORD` under "Site owner sign-in", in case Microsoft sign-in is unavailable. Roles are read when someone signs in, so a change in Entra takes effect at their next sign-in. Sessions last 12 hours. Changing a person's password or removing them is done in Entra.
