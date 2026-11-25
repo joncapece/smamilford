@@ -32,28 +32,26 @@ export function parseTime(text) {
   return hours * 60 + Number(m[2] || 0);
 }
 
-function addDays(date, n) {
-  const [y, m, d] = date.split('-').map(Number);
-  return new Date(Date.UTC(y, m - 1, d + n)).toISOString().slice(0, 10);
-}
-
-// The next Masses to come, in order. Weekly Masses show their next occurrence;
-// one-time Masses show until they pass. Entries with neither a weekday nor a date are left out.
-export function upcomingMasses(items, timeZone, limit = 6) {
+// Everything the home page schedule needs: weekly Masses grouped by day (Sunday first),
+// and one-time Masses that have not passed yet. Entries with neither a weekday nor a date are left out.
+export function homeSchedule(items, timeZone) {
   const now = nowIn(timeZone);
-  const found = [];
+  const byDay = WEEKDAYS.map(() => []);
+  const special = [];
   for (const m of items) {
-    const mins = parseTime(m.time);
+    const mins = parseTime(m.time) ?? 0;
     if (m.date) {
-      if (m.date < now.date) continue;
-      if (m.date === now.date && mins !== null && mins <= now.minutes) continue;
-      found.push({ m, when: m.date, mins: mins ?? 0 });
+      const passed = m.date < now.date || (m.date === now.date && parseTime(m.time) !== null && parseTime(m.time) <= now.minutes);
+      if (!passed) special.push({ m, when: m.date, mins });
     } else if (WEEKDAYS.includes(m.weekday)) {
-      let diff = (WEEKDAYS.indexOf(m.weekday) - now.dow + 7) % 7;
-      if (diff === 0 && mins !== null && mins <= now.minutes) diff = 7;
-      found.push({ m, when: addDays(now.date, diff), mins: mins ?? 0 });
+      byDay[WEEKDAYS.indexOf(m.weekday)].push({ m, mins });
     }
   }
-  found.sort((a, b) => a.when.localeCompare(b.when) || a.mins - b.mins);
-  return found.slice(0, limit).map((x) => x.m);
+  const byTime = (a, b) => a.mins - b.mins;
+  return {
+    weekly: byDay
+      .map((list, i) => ({ weekday: WEEKDAYS[i], masses: list.sort(byTime).map((x) => x.m) }))
+      .filter((d) => d.masses.length),
+    special: special.sort((a, b) => a.when.localeCompare(b.when) || byTime(a, b)).map((x) => x.m),
+  };
 }

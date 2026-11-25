@@ -124,19 +124,25 @@ function massLabel(ctx, m) {
   return txt(ctx, m.day);
 }
 
-function massCard(ctx, m) {
-  return `<li class="mass-card"><span class="day">${esc(massLabel(ctx, m))}</span>` +
+function massHome(ctx, sched) {
+  const { t } = ctx;
+  const timesCell = (masses) => `<ul class="sched-times">${masses.map((m) => `<li>` +
     `<span class="time">${esc(m.time || '')}</span>` +
     (m.language ? `<span class="tag">${esc(LANG_LABEL[m.language] || '')}</span>` : '') +
     (m.location ? `<span class="muted">${esc(m.location)}</span>` : '') +
     (m.note ? `<span class="muted">${txt(ctx, m.note)}</span>` : '') +
-    '</li>';
-}
-
-function massHome(ctx, items) {
-  const { t } = ctx;
+    '</li>').join('')}</ul>`;
+  const rows = [
+    ...sched.weekly.map((d) => `<tr><th scope="row">${esc(t.weekdays[WEEKDAYS.indexOf(d.weekday)])}</th><td>${timesCell(d.masses)}</td></tr>`),
+    ...sched.special.map((m) => `<tr><th scope="row">${esc(massLabel(ctx, m))}</th><td>${timesCell([m])}</td></tr>`),
+  ];
   return `<div class="section-head mass-head"><h2>${esc(t.massTimes)}</h2><a href="/mass-times">${esc(t.massSchedule)} →</a></div>
-    ${items.length ? `<ul class="mass-cards">${items.map((m) => massCard(ctx, m)).join('')}</ul>` : empty(t.noMass)}`;
+    ${rows.length
+      ? `<div class="table-wrap"><table class="schedule">
+  <thead><tr><th scope="col">${esc(t.day)}</th><th scope="col">${esc(t.time)}</th></tr></thead>
+  <tbody>${rows.join('')}</tbody>
+</table></div>`
+      : empty(t.noMass)}`;
 }
 
 function eventItem(ctx, e, { full = false } = {}) {
