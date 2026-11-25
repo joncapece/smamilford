@@ -24,14 +24,24 @@ function site(ctx) {
   };
 }
 
+// Main menu: links, and groups that open to show more links.
 const NAV = [
-  ['/mass-times', 'massTimes'],
-  ['/live-streaming', 'liveStreaming'],
-  ['/events', 'events'],
-  ['/ministries', 'ministries'],
-  ['/bulletins', 'bulletins'],
-  ['/staff', 'staff'],
-  ['/announcements', 'announcements'],
+  { href: '/', key: 'home' },
+  { group: 'navAbout', items: [
+    { href: '/history', key: 'navHistory' },
+    { href: '/staff', key: 'navStaff' },
+    { href: '/bulletins', key: 'bulletins' },
+  ] },
+  { group: 'navWorship', items: [
+    { href: '/mass-times', key: 'navMassTimes' },
+    { href: '/live-streaming', key: 'liveStreaming' },
+    { href: '/sacraments', key: 'navSacraments' },
+    { href: '/funerals', key: 'navFunerals' },
+    { href: '/weddings', key: 'navWeddings' },
+  ] },
+  { href: '/ministries', key: 'ministries' },
+  { href: '/events', key: 'events' },
+  { href: '/contact', key: 'navContact' },
 ];
 
 export function layout(ctx, { title, description = '', body, path = '/', image = '' }) {
@@ -41,12 +51,14 @@ export function layout(ctx, { title, description = '', body, path = '/', image =
   const desc = description || s.tagline || s.name;
   const current = (href) => (href === path ? ' aria-current="page"' : '');
 
-  const navLinks = [
-    ...NAV.map(([href, key]) => `<a href="${href}"${current(href)}>${esc(t[key])}</a>`),
-    ...pages
-      .filter((p) => p.nav)
-      .map((p) => `<a href="/${esc(p.id)}"${current(`/${p.id}`)}>${esc(pick(p.title, lang))}</a>`),
-  ].join('');
+  const link = (item) => `<a href="${item.href}"${current(item.href)}>${esc(t[item.key])}</a>`;
+  const navLinks = NAV.map((item) => {
+    if (!item.group) return link(item);
+    const open = item.items.some((i) => i.href === path) ? ' open' : '';
+    const active = open ? ' class="active"' : '';
+    return `<details class="nav-group"${open}><summary${active}>${esc(t[item.group])}</summary>` +
+      `<div class="nav-panel">${item.items.map(link).join('')}</div></details>`;
+  }).join('');
 
   const langLinks = LANGS.map((l) =>
     `<a href="${esc(path)}?lang=${l}" lang="${l}" hreflang="${l}"${l === lang ? ' aria-current="true"' : ''}>${LANG_SHORT[l]}</a>`,
@@ -254,6 +266,19 @@ function livePopup(ctx, live) {
 </div>
 <script src="/js/vendor/hls.min.js" defer></script>
 <script src="/js/live.js" defer></script>`;
+}
+
+export function contactPage(ctx) {
+  const { t, settings, lang } = ctx;
+  const phoneDigits = String(settings.phone || '').replace(/[^+\d]/g, '');
+  const details = `${settings.address ? `<p>${nl2br(settings.address)}</p>` : ''}` +
+    `${settings.phone ? `<p>${esc(t.phone)}: <a href="tel:${esc(phoneDigits)}">${esc(settings.phone)}</a></p>` : ''}` +
+    `${settings.email ? `<p>${esc(t.email)}: <a href="mailto:${esc(settings.email)}">${esc(settings.email)}</a></p>` : ''}`;
+  const hours = settings.office_hours
+    ? `<div class="card"><h2>${esc(t.officeHours)}</h2>${markdown(pick(settings.office_hours, lang, ''))}</div>`
+    : '';
+  const body = pageHead(t.navContact) + section(`<div class="grid-2"><div class="card"><h2>${esc(t.address)}</h2>${details}</div>${hours}</div>`);
+  return layout(ctx, { title: t.navContact, path: '/contact', body });
 }
 
 export function liveStreamingPage(ctx) {

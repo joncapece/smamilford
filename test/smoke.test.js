@@ -114,7 +114,6 @@ test('a page created in the editor is served at its web address', async () => {
   assert.equal(res.status, 200);
   const html = await res.text();
   assert.match(html, /Baptism, Eucharist/);
-  assert.match(html, /href="\/sacraments-overview"/);
 });
 
 test('reserved web addresses are refused', async () => {
@@ -264,6 +263,18 @@ test('the Live Streaming page shows the live player, then the archive embed', as
   assert.ok(page.indexOf('data-hls=') < page.indexOf('id="archive-embed"'), 'live player comes before the archive');
   assert.match(page, /href="\/live-streaming"/);
   assert.equal((await save({ stream_url: '', archive_embed: '' })).status, 200);
+});
+
+test('the main menu groups pages under About Us and Worship, and a Contact page exists', async () => {
+  const page = await (await fetch(`${base}/`)).text();
+  assert.match(page, /<summary>About Us/);
+  assert.match(page, /<summary>Worship/);
+  assert.match(page, /href="\/history"/);
+  assert.match(page, /href="\/live-streaming"/);
+  assert.match(page, /href="\/weddings"/);
+  const contact = await fetch(`${base}/contact`);
+  assert.equal(contact.status, 200);
+  assert.match(await contact.text(), /Contact/);
 });
 
 test('a photo placed in page text keeps its description and shows on the site', async () => {
