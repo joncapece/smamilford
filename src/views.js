@@ -26,6 +26,7 @@ function site(ctx) {
 
 const NAV = [
   ['/mass-times', 'massTimes'],
+  ['/live-streaming', 'liveStreaming'],
   ['/events', 'events'],
   ['/ministries', 'ministries'],
   ['/bulletins', 'bulletins'],
@@ -253,6 +254,20 @@ function livePopup(ctx, live) {
 </div>
 <script src="/js/vendor/hls.min.js" defer></script>
 <script src="/js/live.js" defer></script>`;
+}
+
+export function liveStreamingPage(ctx) {
+  const { t, settings } = ctx;
+  const url = settings.stream_url;
+  const player = url
+    ? `<video class="live-video live-page-video" controls playsinline preload="metadata" data-hls="${esc(url)}"></video>`
+    : `<p class="empty">${esc(t.liveOffline)}</p>`;
+  const archive = settings.archive_embed ? `<div class="archive-embed">${settings.archive_embed}</div>` : '';
+  const body = pageHead(t.liveStreaming) +
+    section(`<div class="live-page">${player}</div>`) +
+    (archive ? section(`<h2>${esc(t.archiveTitle)}</h2>${archive}`) : '') +
+    (url ? '<script src="/js/vendor/hls.min.js" defer></script><script src="/js/player.js" defer></script>' : '');
+  return layout(ctx, { title: t.liveStreaming, path: '/live-streaming', body });
 }
 
 export function home(ctx, d) {

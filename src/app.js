@@ -172,6 +172,7 @@ export function createApp(options = {}) {
   }));
 
   listRoute('/mass-times', 'mass_times', (ctx, items) => views.massTimesPage(ctx, items));
+  app.get('/live-streaming', wrap(async (req, res) => send(res, views.liveStreamingPage(await loadCtx(req, res)))));
   listRoute('/events', 'events', (ctx, items) => views.eventsPage(ctx, upcomingEvents(items, ctx.today)));
   listRoute('/announcements', 'announcements', (ctx, items) =>
     views.announcementsPage(ctx, activeAnnouncements(items, ctx.today)));

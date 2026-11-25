@@ -253,6 +253,19 @@ test('Mass times always show earliest to latest, whatever order they were entere
   assert.ok(a > 0 && b > a && c > b, 'times are in order from earliest to latest');
 });
 
+test('the Live Streaming page shows the live player, then the archive embed', async () => {
+  const embed = '<iframe id="archive-embed" src="https://example.com/archive"></iframe>';
+  const current = await (await admin('/admin/api/settings')).json();
+  const save = (extra) => admin('/admin/api/settings', { method: 'PUT', json: { ...current, ...extra } });
+  assert.equal((await save({ stream_url: 'https://example.com/live/index.m3u8', archive_embed: embed })).status, 200);
+  const page = await (await fetch(`${base}/live-streaming`)).text();
+  assert.equal((await fetch(`${base}/live-streaming`)).status, 200);
+  assert.match(page, /data-hls="https:\/\/example\.com\/live\/index\.m3u8"/);
+  assert.ok(page.indexOf('data-hls=') < page.indexOf('id="archive-embed"'), 'live player comes before the archive');
+  assert.match(page, /href="\/live-streaming"/);
+  assert.equal((await save({ stream_url: '', archive_embed: '' })).status, 200);
+});
+
 test('a photo placed in page text keeps its description and shows on the site', async () => {
   const saved = await admin('/admin/api/pages', {
     method: 'POST',

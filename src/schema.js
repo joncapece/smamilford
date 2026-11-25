@@ -182,6 +182,7 @@ export const settingsFields = [
   { key: 'tagline', label: 'Small text above the name', type: 'text', i18n: true },
   { key: 'welcome', label: 'Welcome message (home page)', type: 'markdown', i18n: true, help: MD },
   { key: 'address', label: 'Street address', type: 'textarea', help: 'One line per row. Shown in the footer.' },
+  { key: 'archive_embed', label: 'Live Streaming page: archive embed code', type: 'textarea', help: 'Paste the archive embed code here. It appears on the Live Streaming page under the live player, exactly as pasted, so only paste code from a source you trust.' },
   { key: 'stream_url', label: 'Live stream address (HLS)', type: 'url', help: 'The .m3u8 address from your streaming provider. Leave blank to turn off the live pop-up.' },
   { key: 'bulletin_embed', label: 'Bulletins page: embed code (optional)', type: 'textarea', help: 'Paste the code from your bulletin service. When filled in, the Bulletins page shows it instead of uploaded bulletin files. It appears on the site exactly as pasted, so only paste code from a source you trust.' },
   { key: 'phone', label: 'Phone', type: 'text' },
@@ -199,5 +200,5 @@ export const settingsFields = [
 // Web addresses that pages may not use, because the site already uses them.
 export const RESERVED_SLUGS = [
   'admin', 'api', 'uploads', 'css', 'img', 'js', 'healthz',
-  'events', 'ministries', 'bulletins', 'staff', 'mass-times', 'announcements',
+  'events', 'ministries', 'bulletins', 'staff', 'mass-times', 'announcements', 'live-streaming',
 ];
