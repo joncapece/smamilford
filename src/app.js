@@ -1,5 +1,4 @@
 import express from 'express';
-import crypto from 'node:crypto';
 import path from 'node:path';
 import multer from 'multer';
 import { fileURLToPath } from 'node:url';
@@ -9,6 +8,8 @@ import { homeSchedule, liveMass } from './masses.js';
 import * as store from './content.js';
 import * as views from './views.js';
 import { translationEnabled } from './translate.js';
+import { createAuth, SESSION_COOKIE } from './auth.js';
+import { entraConfig, loginUrl, finishLogin } from './entra.js';
 import { markdown, pick, todayIn } from './util.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -91,27 +92,32 @@ export function createApp(options = {}) {
   app.get('/healthz', (req, res) => res.type('text').send('ok'));
 
   // ---- admin (password protected) ----
-  const safeEq = (a, b) => {
-    const x = crypto.createHash('sha256').update(String(a)).digest();
-    const y = crypto.createHash('sha256').update(String(b)).digest();
-    return crypto.timingSafeEqual(x, y);
-  };
-  // True when the request carries the editor's sign-in (the browser sends it after the first sign-in).
-  const signedIn = (req) => {
-    const header = req.headers.authorization || '';
-    if (!header.startsWith('Basic ')) return false;
-    const [user, ...rest] = Buffer.from(header.slice(6), 'base64').toString('utf8').split(':');
-    return safeEq(user ?? '', adminUser) && safeEq(rest.join(':'), adminPassword);
-  };
-  const requireAdmin = (req, res, next) => {
-    if (signedIn(req)) return next();
-    res.set('WWW-Authenticate', 'Basic realm="St. Mary content editor", charset="UTF-8"');
-    return res.status(401).type('text').send('Sign-in required');
-  };
+  const accounts = createAuth({ adminUser, adminPassword });
+  // Only send people back to a path on this site after signing in.
+  const safeNext = (v) => (typeof v === 'string' && /^\/(?![\/\\])/.test(v) ? v : '/');
+  const sessionCookie = (req, value, maxAge) =>
+    `${SESSION_COOKIE}=${value}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAge}${req.secure ? '; Secure' : ''}`;
+  const entraFor = (req) => entraConfig(process.env, `${req.protocol}://${req.get('host')}`);
+
+  // Editor API: a signed-in person, else a JSON error.
+  const apiAuth = wrap(async (req, res, next) => {
+    const user = await accounts.currentUser(req);
+    if (!user) return res.status(401).json({ error: 'Sign in to edit the website.' });
+    req.user = user;
+    return next();
+  });
+  // Editor pages: a signed-in person, else the sign-in page.
+  const pageAuth = wrap(async (req, res, next) => {
+    const user = await accounts.currentUser(req);
+    if (!user) return res.redirect(`/sign-in?next=${encodeURIComponent(req.originalUrl)}`);
+    req.user = user;
+    return next();
+  });
 
   const adminApi = express.Router();
   const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: store.MAX_UPLOAD } });
-  adminApi.use(requireAdmin);
+  adminApi.use(apiAuth);
+  adminApi.get('/me', (req, res) => res.json({ name: req.user.name, role: req.user.role }));
   adminApi.get('/schema', wrap(async (req, res) => {
     const pages = sortRecords(await store.listRecords('pages'), 'order');
     const pageOptions = [
@@ -147,21 +153,24 @@ export function createApp(options = {}) {
   }));
 
   app.use('/admin/api', adminApi);
-  app.use('/admin/vendor', requireAdmin, express.static(path.join(ROOT, 'node_modules', 'quill', 'dist'), { maxAge: '7d' }));
-  app.use('/admin/vendor', requireAdmin, express.static(path.join(ROOT, 'node_modules', 'quill-better-table', 'dist'), { maxAge: '7d' }));
-  app.use('/admin', requireAdmin, express.static(ADMIN_DIR, { index: 'index.html' }));
+  app.use('/admin/vendor', pageAuth, express.static(path.join(ROOT, 'node_modules', 'quill', 'dist'), { maxAge: '7d' }));
+  app.use('/admin/vendor', pageAuth, express.static(path.join(ROOT, 'node_modules', 'quill-better-table', 'dist'), { maxAge: '7d' }));
+  app.use('/admin', pageAuth, express.static(ADMIN_DIR, { index: 'index.html' }));
 
   // ---- public site ----
   const loadCtx = async (req, res) => {
     const lang = resolveLang(req, res);
-    const [settings, pages] = await Promise.all([store.getSettings(), store.listRecords('pages')]);
+    const [settings, pages, user] = await Promise.all([
+      store.getSettings(), store.listRecords('pages'), accounts.currentUser(req),
+    ]);
     return {
       lang,
       t: { ...UI.en, ...UI[lang] },
       settings,
       pages: sortRecords(pages, 'order'),
       today: todayIn(settings.timezone),
-      editor: signedIn(req), // signed-in staff see editing tools on the public pages
+      user, // signed-in staff see editing tools on the public pages
+      editor: Boolean(user),
     };
   };
   // Pages differ for signed-in staff, so they must never be shared from a cache.
@@ -201,6 +210,43 @@ export function createApp(options = {}) {
   listRoute('/bulletins', 'bulletins', (ctx, items) => views.bulletinsPage(ctx, sortRecords(items, 'date-desc')));
   listRoute('/staff', 'staff', (ctx, items) => views.staffPage(ctx, sortRecords(items, 'order')));
 
+  // ---- staff sign-in ----
+  const signInView = async (req, res, extra = {}) => send(res, views.signInPage(await loadCtx(req, res), {
+    next: safeNext(req.query.next ?? req.body?.next), entraReady: Boolean(entraFor(req)), ...extra,
+  }));
+  app.get('/sign-in', wrap(async (req, res) => signInView(req, res)));
+  app.get('/auth/entra', wrap(async (req, res) => {
+    const cfg = entraFor(req);
+    if (!cfg) return res.redirect('/sign-in');
+    return res.redirect(loginUrl(cfg, safeNext(req.query.next)));
+  }));
+  app.get('/auth/callback', wrap(async (req, res) => {
+    if (req.query.error) return signInView(req, res, { error: 'Microsoft sign-in was cancelled. Try again when you are ready.' });
+    const cfg = entraFor(req);
+    if (!cfg) return res.redirect('/sign-in');
+    let person;
+    try {
+      person = await finishLogin(cfg, { code: req.query.code, state: req.query.state });
+    } catch (err) {
+      return signInView(req, res, { error: err.message });
+    }
+    const token = await accounts.startSession(person);
+    res.set('Set-Cookie', sessionCookie(req, token, 12 * 3600));
+    return res.redirect(person.next);
+  }));
+  app.post('/sign-in/owner', express.urlencoded({ extended: false }), wrap(async (req, res) => {
+    const result = accounts.ownerLogin(req.body.username, req.body.password, req.ip);
+    if (result.error) return signInView(req, res, { error: result.error });
+    const token = await accounts.startSession(result.person);
+    res.set('Set-Cookie', sessionCookie(req, token, 12 * 3600));
+    return res.redirect(safeNext(req.body.next));
+  }));
+  app.post('/sign-out', wrap(async (req, res) => {
+    await accounts.endSession(req);
+    res.set('Set-Cookie', sessionCookie(req, '', 0));
+    return res.redirect('/');
+  }));
+
   // Any other address is a page made in the editor, e.g. /about
   app.get('/:slug', wrap(async (req, res, next) => {
     if (RESERVED_SLUGS.includes(req.params.slug)) return next();
@@ -227,7 +273,7 @@ export function createApp(options = {}) {
     try {
       ctx = await loadCtx(req, res);
     } catch {
-      ctx = { lang: 'en', t: UI.en, settings: {}, pages: [], today: todayIn(), editor: false };
+      ctx = { lang: 'en', t: UI.en, settings: {}, pages: [], today: todayIn(), user: null, editor: false };
     }
     const html = status === 404 ? views.notFound(ctx) : views.errorPage(ctx);
     res.set('Cache-Control', 'no-cache');

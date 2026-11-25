@@ -117,3 +117,6 @@ fieldset.i18n legend { padding: 0 .4rem; }
 .embed .top, .embed #side { display: none; }
 .embed .layout { grid-template-columns: 1fr; min-height: 0; }
 .embed main { max-width: none; padding: 1.25rem; }
+
+/* Sign out, in the editor header */
+.signout button { background: none; border: 1px solid rgba(255, 255, 255, .5); color: #fff; border-radius: 6px; padding: 0.35rem 0.75rem; font: inherit; cursor: pointer; margin-left: 0.75rem; }

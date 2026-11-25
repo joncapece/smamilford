@@ -55,8 +55,9 @@ test('?lang=es switches the site to Spanish and remembers it', async () => {
 test('editor requires a password', async () => {
   const r = await fetch(`${base}/admin/api/schema`);
   assert.equal(r.status, 401);
-  const r2 = await fetch(`${base}/admin/`);
-  assert.equal(r2.status, 401);
+  const r2 = await fetch(`${base}/admin/`, { redirect: 'manual' });
+  assert.equal(r2.status, 302);
+  assert.match(r2.headers.get('location'), /^\/sign-in\?next=/);
 });
 
 test('editor is reachable with the password', async () => {
@@ -342,6 +343,70 @@ test('clergy are listed first in their own section on the staff page', async () 
   const staffAt = html.indexOf('Test Staffer');
   assert.ok(clergyAt > 0 && staffAt > clergyAt, 'clergy card comes before staff card');
   assert.ok(html.indexOf('>Clergy<') < clergyAt && html.indexOf('>Clergy<') > 0, 'Clergy heading present');
+});
+
+test('staff sign-in: the owner can sign in with the backup form, and visitors cannot', async () => {
+  const bad = await fetch(`${base}/sign-in/owner`, {
+    method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ username: 'admin', password: 'wrong-password-here', next: '/admin' }), redirect: 'manual',
+  });
+  assert.equal(bad.status, 200);
+  assert.match(await bad.text(), /not right/);
+  assert.equal(bad.headers.get('set-cookie'), null);
+
+  const ok = await fetch(`${base}/sign-in/owner`, {
+    method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ username: 'admin', password: PASSWORD, next: '/admin' }), redirect: 'manual',
+  });
+  assert.equal(ok.status, 302);
+  assert.equal(ok.headers.get('location'), '/admin');
+  const cookie = ok.headers.get('set-cookie').split(';')[0];
+  assert.match(cookie, /^session=/);
+
+  const me = await fetch(`${base}/admin/api/me`, { headers: { Cookie: cookie } });
+  assert.deepEqual(await me.json(), { name: 'admin', role: 'admin' });
+  const anon = await fetch(`${base}/admin/api/me`);
+  assert.equal(anon.status, 401);
+
+  const footer = await (await fetch(`${base}/`, { headers: { Cookie: cookie } })).text();
+  assert.match(footer, /action="\/sign-out"/);
+  const visitorFooter = await (await fetch(`${base}/`)).text();
+  assert.match(visitorFooter, /href="\/sign-in"/);
+});
+
+test('Microsoft sign-in sends people to the Entra tenant, and rejects unknown returns', async () => {
+  process.env.ENTRA_TENANT_ID = '11111111-2222-3333-4444-555555555555';
+  process.env.ENTRA_CLIENT_ID = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
+  process.env.ENTRA_CLIENT_SECRET = 'test-secret';
+  process.env.PUBLIC_URL = 'https://site.example.org';
+  try {
+    const page = await (await fetch(`${base}/sign-in`)).text();
+    assert.match(page, /Sign in with Microsoft/);
+    const go = await fetch(`${base}/auth/entra?next=/admin`, { redirect: 'manual' });
+    assert.equal(go.status, 302);
+    const to = new URL(go.headers.get('location'));
+    assert.equal(to.origin, 'https://login.microsoftonline.com');
+    assert.equal(to.pathname, '/11111111-2222-3333-4444-555555555555/oauth2/v2.0/authorize');
+    assert.equal(to.searchParams.get('client_id'), process.env.ENTRA_CLIENT_ID);
+    assert.equal(to.searchParams.get('redirect_uri'), 'https://site.example.org/auth/callback');
+    assert.equal(to.searchParams.get('code_challenge_method'), 'S256');
+    assert.ok(to.searchParams.get('state'));
+
+    const cancelled = await (await fetch(`${base}/auth/callback?error=access_denied`)).text();
+    assert.match(cancelled, /cancelled/);
+    const forged = await (await fetch(`${base}/auth/callback?code=abc&state=not-ours`)).text();
+    assert.match(forged, /expired/);
+  } finally {
+    for (const k of ['ENTRA_TENANT_ID', 'ENTRA_CLIENT_ID', 'ENTRA_CLIENT_SECRET', 'PUBLIC_URL']) delete process.env[k];
+  }
+});
+
+test('Entra roles: Admin and Editor get access, anyone else does not', async () => {
+  const { roleFromClaims } = await import('../src/entra.js');
+  assert.equal(roleFromClaims(['Admin']), 'admin');
+  assert.equal(roleFromClaims(['Editor']), 'editor');
+  assert.equal(roleFromClaims([]), null);
+  assert.equal(roleFromClaims(undefined), null);
 });
 
 test('tables made in the editor show on the site, and scripts inside them are removed', async () => {

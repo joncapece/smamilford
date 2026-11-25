@@ -205,6 +205,6 @@ export const settingsFields = [
 
 // Web addresses that pages may not use, because the site already uses them.
 export const RESERVED_SLUGS = [
-  'admin', 'api', 'uploads', 'css', 'img', 'js', 'healthz',
+  'admin', 'api', 'uploads', 'css', 'img', 'js', 'healthz', 'sign-in', 'sign-out', 'auth',
   'events', 'ministries', 'bulletins', 'staff', 'mass-times', 'announcements', 'live-streaming', 'contact',
 ];

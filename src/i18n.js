@@ -70,6 +70,8 @@ export const UI = {
     errorText: 'Please try again in a moment.',
     backHome: 'Back to home',
     rights: 'All rights reserved.',
+    staffSignIn: 'Staff sign-in',
+    signOut: 'Sign out',
   },
   es: {
     skip: 'Saltar al contenido',
@@ -137,6 +139,8 @@ export const UI = {
     errorText: 'Por favor, inténtelo de nuevo en un momento.',
     backHome: 'Volver al inicio',
     rights: 'Todos los derechos reservados.',
+    staffSignIn: 'Acceso del personal',
+    signOut: 'Cerrar sesión',
   },
   pt: {
     skip: 'Pular para o conteúdo',
@@ -204,5 +208,7 @@ export const UI = {
     errorText: 'Tente novamente em instantes.',
     backHome: 'Voltar ao início',
     rights: 'Todos os direitos reservados.',
+    staffSignIn: 'Acesso da equipe',
+    signOut: 'Sair',
   },
 };

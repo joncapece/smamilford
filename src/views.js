@@ -153,6 +153,9 @@ ${body}
     ${social ? `<div><h2>${esc(t.connect)}</h2><nav class="social" aria-label="Social">${social}</nav></div>` : ''}
   </div>
   <p class="wrap footer-legal">© ${new Date().getFullYear()} ${esc(s.name)}. ${esc(pick(settings.footer_note, lang, ''))} ${esc(t.rights)}</p>
+  <p class="wrap footer-staff">${ctx.user
+    ? `<form method="post" action="/sign-out"><span>${esc(ctx.user.name)}</span> <button type="submit">${esc(t.signOut)}</button></form>`
+    : `<a href="/sign-in">${esc(t.staffSignIn)}</a>`}</p>
 </footer>
 <script src="/js/nav.js?v=${ASSET_VERSION}" defer></script>
 ${ctx.editor ? editTools(ctx, path) : ''}
@@ -249,6 +252,28 @@ const section = (inner, cls = '') => `<section class="section ${cls}"><div class
 const empty = (text) => `<p class="empty">${esc(text)}</p>`;
 
 // ---- pages ----------------------------------------------------------------
+
+// Staff sign-in page (English only, for staff). Microsoft sign-in is the main way in; the owner's
+// username and password sit under a collapsed section as a backup.
+export function signInPage(ctx, { next = '/', error = '', entraReady = false }) {
+  const msg = error ? `<p class="error" role="alert">${esc(error)}</p>` : '';
+  const microsoft = entraReady
+    ? `<p><a class="btn btn-navy" href="/auth/entra?next=${encodeURIComponent(next)}">Sign in with Microsoft</a></p>
+       <p class="muted">Use your parish Microsoft account.</p>`
+    : '<p class="notice">Microsoft sign-in is not set up on this website yet.</p>';
+  return layout(ctx, {
+    title: 'Staff sign-in', path: '/sign-in',
+    body: pageHead('Staff sign-in') + section(`${msg}${microsoft}
+      <details class="owner-login"><summary>Site owner sign-in</summary>
+        <form class="auth-form" method="post" action="/sign-in/owner">
+          <input type="hidden" name="next" value="${esc(next)}">
+          <label>Username<input name="username" autocomplete="username" required></label>
+          <label>Password<input name="password" type="password" autocomplete="current-password" required></label>
+          <button type="submit" class="btn btn-navy">Sign in</button>
+        </form>
+      </details>`),
+  });
+}
 
 
 // Home page photos: each one fades in and out in turn. Pure CSS, so it works without JavaScript.

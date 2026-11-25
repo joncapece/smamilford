@@ -31,6 +31,9 @@ function withLock(key, fn) {
 
 const file = (name) => path.join(DATA_DIR, `${name}.json`);
 
+// Shared with the sessions module, which keeps its own file.
+export { readJson, writeJson, withLock };
+
 async function readJson(name, fallback) {
   try {
     return JSON.parse(await fs.readFile(file(name), 'utf8'));

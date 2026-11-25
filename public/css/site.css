@@ -440,3 +440,17 @@ tbody tr:nth-child(even) { background: var(--cream); }
 
 .staff-heading { margin: 2rem 0 1rem; }
 .staff-heading:first-child { margin-top: 0; }
+
+.owner-login { margin-top: 2rem; max-width: 420px; }
+.owner-login summary { cursor: pointer; font-weight: 700; color: var(--navy); }
+.owner-login .auth-form { margin-top: 0.9rem; }
+.auth-form { display: grid; gap: 0.9rem; max-width: 420px; margin-bottom: 1rem; }
+.auth-form label { display: grid; gap: 0.3rem; font-weight: 700; color: var(--navy); }
+.auth-form input { font: inherit; padding: 0.65rem 0.75rem; border: 1px solid #b9c2d3; border-radius: 6px; }
+.notice, .error { padding: 0.8rem 1rem; border-radius: 8px; max-width: 520px; }
+.notice { background: #eef4ff; color: var(--navy); }
+.error { background: #fdecec; color: #8a1c1c; }
+.footer-staff { margin-top: 0.6rem; font-size: 0.9rem; opacity: 0.9; }
+.footer-staff a { color: var(--gold); }
+.footer-staff form { display: inline; }
+.footer-staff button { background: none; border: 0; color: var(--gold); font: inherit; text-decoration: underline; cursor: pointer; padding: 0; }
