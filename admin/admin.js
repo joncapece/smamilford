@@ -123,9 +123,18 @@ const TOOLBAR = [
   ['bold', 'italic', 'underline'],
   ['link', 'image'],
   [{ list: 'ordered' }, { list: 'bullet' }],
-  ['blockquote'],
+  ['blockquote', 'table'],
   ['clean'],
 ];
+
+// Tables come from the quill-better-table module, which also keeps tables when text is pasted in.
+let tableModule;
+function registerTables() {
+  if (tableModule !== undefined) return tableModule;
+  tableModule = window.quillBetterTable?.default ?? window.quillBetterTable ?? null;
+  if (tableModule) Quill.register({ 'modules/better-table': tableModule }, true);
+  return tableModule;
+}
 const rteField = (name, value) =>
   `<div class="rte-wrap"><div class="rte" data-name="${esc(name)}"></div></div><textarea name="${esc(name)}" hidden>${esc(value)}</textarea>`;
 
@@ -158,9 +167,23 @@ function insertPhoto(quill) {
 function initEditors(root) {
   root.querySelectorAll('.rte').forEach((el) => {
     const ta = root.querySelector(`textarea[name="${el.dataset.name}"]`);
+    const bt = registerTables();
     const q = new Quill(el, {
       theme: 'snow',
-      modules: { toolbar: { container: TOOLBAR, handlers: { image() { insertPhoto(this.quill); } } } },
+      modules: {
+        table: false,
+        toolbar: {
+          container: TOOLBAR,
+          handlers: {
+            image() { insertPhoto(this.quill); },
+            table() {
+              const tables = this.quill.getModule('better-table');
+              if (tables) tables.insertTable(3, 3);
+            },
+          },
+        },
+        ...(bt ? { 'better-table': {}, keyboard: { bindings: bt.keyboardBindings } } : {}),
+      },
     });
     q.clipboard.dangerouslyPasteHTML(ta?.value || '', 'silent');
     el._quill = q;

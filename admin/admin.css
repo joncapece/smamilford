@@ -108,3 +108,7 @@ fieldset.i18n legend { padding: 0 .4rem; }
 .ql-toolbar.ql-snow .ql-picker-label { display: flex; align-items: center; line-height: 1.2; }
 .ql-toolbar.ql-snow .ql-picker { height: 28px; }
 .ql-snow .ql-toolbar button.ql-image svg { width: 18px; }
+
+/* Table button in the editor toolbar */
+.ql-snow .ql-toolbar .ql-table { width: auto; padding: 0 0.45rem; }
+.ql-snow .ql-toolbar .ql-table::before { content: 'Table'; font-size: 0.85rem; font-weight: 600; }

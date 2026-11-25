@@ -145,6 +145,7 @@ export function createApp(options = {}) {
 
   app.use('/admin/api', adminApi);
   app.use('/admin/vendor', requireAdmin, express.static(path.join(ROOT, 'node_modules', 'quill', 'dist'), { maxAge: '7d' }));
+  app.use('/admin/vendor', requireAdmin, express.static(path.join(ROOT, 'node_modules', 'quill-better-table', 'dist'), { maxAge: '7d' }));
   app.use('/admin', requireAdmin, express.static(ADMIN_DIR, { index: 'index.html' }));
 
   // ---- public site ----

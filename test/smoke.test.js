@@ -304,6 +304,18 @@ test('a page with sub-pages shows a side menu listing them', async () => {
   assert.doesNotMatch(plain, /class="side-nav"/);
 });
 
+test('tables made in the editor show on the site, and scripts inside them are removed', async () => {
+  const body = '<table data-row="r1" style="width: 400px"><tbody><tr data-row="r1"><th data-row="r1" data-cell="c1" colspan="2">Mass</th></tr>' +
+    '<tr data-row="r2"><td data-row="r2" data-cell="c2">Sunday</td><td data-row="r2" data-cell="c3"><script>alert(1)</script>9:00</td></tr></tbody></table>';
+  const r = await admin('/admin/api/pages', { method: 'POST', json: { slug: 'table-test', title: { en: 'Table test' }, body: { en: body }, order: 9 } });
+  assert.equal(r.status, 200);
+  const html = await (await fetch(`${base}/table-test`)).text();
+  assert.match(html, /<table/);
+  assert.match(html, /<th[^>]*colspan="2"[^>]*>Mass<\/th>/);
+  assert.match(html, /<td[^>]*>Sunday<\/td>/);
+  assert.doesNotMatch(html, /<script>alert/);
+});
+
 test('a photo placed in page text keeps its description and shows on the site', async () => {
   const saved = await admin('/admin/api/pages', {
     method: 'POST',

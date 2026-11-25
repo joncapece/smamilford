@@ -18,13 +18,32 @@ export function pick(value, lang, fallback = '') {
   return String(value);
 }
 
+// Table cell attributes written by the editor (rows, spans and shading).
+const TABLE_CELL_ATTRS = ['colspan', 'rowspan', 'style', 'data-row', 'data-cell', 'data-rowspan', 'data-colspan', 'data-cell-bg'];
+
 // Markdown from the editor, converted to HTML and cleaned so no script can get through.
 export function markdown(src) {
   const html = marked.parse(String(src || ''), { gfm: true, async: false });
   return sanitizeHtml(html, {
     allowedTags: ['p', 'br', 'strong', 'em', 'b', 'i', 'u', 'a', 'ul', 'ol', 'li',
-      'h2', 'h3', 'h4', 'blockquote', 'hr', 'img'],
-    allowedAttributes: { a: ['href', 'title'], img: ['src', 'alt', 'width', 'height'] },
+      'h2', 'h3', 'h4', 'blockquote', 'hr', 'img',
+      'table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td', 'colgroup', 'col'],
+    allowedAttributes: {
+      a: ['href', 'title'],
+      img: ['src', 'alt', 'width', 'height'],
+      table: ['style'],
+      col: ['style', 'width'],
+      colgroup: ['style'],
+      td: TABLE_CELL_ATTRS,
+      th: TABLE_CELL_ATTRS,
+      tr: ['data-row'],
+    },
+    allowedStyles: {
+      '*': {
+        'background-color': [/^#[0-9a-fA-F]{3,8}$/, /^[a-z]+$/],
+        width: [/^\d+(\.\d+)?(px|%|em|rem)$/],
+      },
+    },
     allowedSchemes: ['http', 'https', 'mailto', 'tel'],
     allowedSchemesByTag: { img: ['https'] },
     allowProtocolRelative: false,
