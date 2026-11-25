@@ -84,8 +84,8 @@ test('an event added in the editor appears on the events page, and HTML is clean
 
 test('Mass times are split into Lord\'s Day and Weekday Liturgies', async () => {
   const add = (body) => admin('/admin/api/mass_times', { method: 'POST', json: body });
-  assert.equal((await add({ section: 'weekday', day: { en: 'Tuesday' }, time: '7:00 AM', language: 'en' })).status, 200);
-  assert.equal((await add({ section: 'lords_day', day: { en: 'Sunday' }, time: '9:00 AM', language: 'en' })).status, 200);
+  assert.equal((await add({ section: 'weekday', weekday: 'tuesday', time: '7:00 AM', language: 'en' })).status, 200);
+  assert.equal((await add({ section: 'lords_day', weekday: 'sunday', time: '9:00 AM', language: 'en' })).status, 200);
   const page = await (await fetch(`${base}/mass-times`)).text();
   const lords = page.indexOf('Lord');
   const weekday = page.indexOf('Weekday Liturgies');
@@ -215,6 +215,18 @@ test('the Bulletins page can show embed code from settings instead of uploaded f
   assert.equal((await save('')).status, 200);
   const after = await (await fetch(`${base}/bulletins`)).text();
   assert.ok(!after.includes('parishesonline'), 'embed is removed when cleared');
+});
+
+test('home page lists upcoming Masses only, with a link to the full schedule', async () => {
+  const add = (body) => admin('/admin/api/mass_times', { method: 'POST', json: body });
+  assert.equal((await add({ section: 'lords_day', weekday: 'sunday', time: '9:00 AM', language: 'en' })).status, 200);
+  assert.equal((await add({ section: 'weekday', date: '2000-01-01', time: '7:00 AM', language: 'en', note: { en: 'Old holy day' } })).status, 200);
+  assert.equal((await add({ section: 'weekday', date: '2099-12-08', time: '7:00 AM', language: 'en', note: { en: 'Future holy day' } })).status, 200);
+  const html = await (await fetch(`${base}/`)).text();
+  assert.match(html, /Future holy day/);
+  assert.doesNotMatch(html, /Old holy day/);
+  assert.match(html, /View full Mass schedule/);
+  assert.match(html, /href="\/mass-times"/);
 });
 
 test('a photo placed in page text keeps its description and shows on the site', async () => {

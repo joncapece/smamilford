@@ -11,6 +11,16 @@ export const MASS_SECTION_OPTIONS = [
   { value: 'weekday', label: 'Weekday Liturgies' },
 ];
 
+export const WEEKDAY_OPTIONS = [
+  { value: 'sunday', label: 'Sunday' },
+  { value: 'monday', label: 'Monday' },
+  { value: 'tuesday', label: 'Tuesday' },
+  { value: 'wednesday', label: 'Wednesday' },
+  { value: 'thursday', label: 'Thursday' },
+  { value: 'friday', label: 'Friday' },
+  { value: 'saturday', label: 'Saturday' },
+];
+
 export const LANG_OPTIONS = [
   { value: 'en', label: 'English' },
   { value: 'es', label: 'Español' },
@@ -151,10 +161,11 @@ export const collections = {
     label: 'Mass & Service Times',
     singular: 'time',
     sortBy: 'order',
-    list: ['section', 'day', 'time', 'language'],
+    list: ['section', 'weekday', 'date', 'time', 'language'],
     fields: [
       { key: 'section', label: 'Section', type: 'select', required: true, options: MASS_SECTION_OPTIONS, help: 'Lord\'s Day Masses are on Saturday and Sunday. Weekday Liturgies are Monday to Friday.' },
-      { key: 'day', label: 'Day', type: 'text', i18n: true, required: true, help: 'For example: Sunday' },
+      { key: 'weekday', label: 'Day of the week', type: 'select', options: WEEKDAY_OPTIONS, help: 'For Masses that repeat every week. Add one entry per day. Leave blank for a one-time Mass and use the date instead.' },
+      { key: 'date', label: 'Date (one-time Mass)', type: 'date', help: 'For holy days or special Masses. It disappears from the home page after it passes.' },
       { key: 'time', label: 'Time', type: 'text', required: true, help: 'For example: 9:00 AM' },
       { key: 'language', label: 'Language', type: 'select', options: LANG_OPTIONS, help: 'Shown next to the time so people know which Mass to attend.' },
       { key: 'location', label: 'Place (optional)', type: 'text', help: 'For example: Church, Parish Hall, Chapel' },

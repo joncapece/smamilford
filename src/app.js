@@ -5,6 +5,7 @@ import multer from 'multer';
 import { fileURLToPath } from 'node:url';
 import { UI } from './i18n.js';
 import { LANGS, collections, settingsFields, RESERVED_SLUGS } from './schema.js';
+import { upcomingMasses } from './masses.js';
 import * as store from './content.js';
 import * as views from './views.js';
 import { translationEnabled } from './translate.js';
@@ -154,7 +155,7 @@ export function createApp(options = {}) {
     );
     send(res, views.home(ctx, {
       slides: sortRecords(slides.filter((x) => x.image && !x.hidden), 'order'),
-      massTimes: sortRecords(mass, 'order'),
+      massTimes: upcomingMasses(mass, ctx.settings.timezone, 6),
       events: upcomingEvents(events, ctx.today).slice(0, 3),
       announcements: activeAnnouncements(anns, ctx.today).slice(0, 3),
       ministries: sortRecords(ministries, 'order').slice(0, 3),

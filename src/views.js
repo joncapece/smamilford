@@ -1,6 +1,7 @@
 // HTML for every public page. Everything from the editor goes through esc() or markdown().
 
 import { LANG_OPTIONS, LANGS } from './schema.js';
+import { WEEKDAYS } from './masses.js';
 import { esc, pick, markdown, fmtDate } from './util.js';
 
 const DEFAULT_NAME = 'Saint Mary of the Assumption';
@@ -114,8 +115,17 @@ ${body}
 
 // ---- small pieces ---------------------------------------------------------
 
+// What to call a Mass time: its date for one-time Masses, otherwise its weekday.
+// Older entries that only have a free-text day keep showing that text.
+function massLabel(ctx, m) {
+  if (m.date) return fmtDate(m.date, ctx.lang, { weekday: 'long', month: 'long', day: 'numeric' });
+  const i = WEEKDAYS.indexOf(m.weekday);
+  if (i >= 0) return ctx.t.weekdays[i];
+  return txt(ctx, m.day);
+}
+
 function timeRow(ctx, m) {
-  return `<li><span class="day">${txt(ctx, m.day)}</span>` +
+  return `<li><span class="day">${esc(massLabel(ctx, m))}</span>` +
     `<span class="time">${esc(m.time || '')}</span>` +
     (m.language ? `<span class="tag">${esc(LANG_LABEL[m.language] || '')}</span>` : '') +
     (m.location ? `<span class="muted">${esc(m.location)}</span>` : '') +
@@ -246,8 +256,8 @@ export function home(ctx, d) {
 ${section(`<div class="grid-3">
   <div class="card">
     <h2>${esc(t.massTimes)}</h2>
-    ${d.massTimes.length ? `<ul class="times">${d.massTimes.slice(0, 6).map((m) => timeRow(ctx, m)).join('')}</ul>` : empty(t.noMass)}
-    <p><a href="/mass-times">${esc(t.allTimes)} →</a></p>
+    ${d.massTimes.length ? `<ul class="times">${d.massTimes.map((m) => timeRow(ctx, m)).join('')}</ul>` : empty(t.noMass)}
+    <p><a href="/mass-times">${esc(t.massSchedule)} →</a></p>
   </div>
   <div class="card">
     <h2>${esc(t.upcomingEvents)}</h2>
@@ -293,7 +303,7 @@ export function massTimesPage(ctx, items) {
     <th scope="col">${esc(t.day)}</th><th scope="col">${esc(t.time)}</th><th scope="col">${esc(t.language)}</th><th scope="col">${esc(t.place)}</th><th scope="col">${esc(t.note)}</th>
   </tr></thead>
   <tbody>${g.items.map((m) => `<tr>
-    <td>${txt(ctx, m.day)}</td><td>${esc(m.time || '')}</td><td>${esc(LANG_LABEL[m.language] || '')}</td><td>${esc(m.location || '')}</td><td>${txt(ctx, m.note)}</td>
+    <td>${esc(massLabel(ctx, m))}</td><td>${esc(m.time || '')}</td><td>${esc(LANG_LABEL[m.language] || '')}</td><td>${esc(m.location || '')}</td><td>${txt(ctx, m.note)}</td>
   </tr>`).join('')}</tbody>
 </table></div>`).join('');
   return layout(ctx, { title: t.massTimes, path: '/mass-times', body: pageHead(t.massTimes) + section(tables || empty(t.noMass)) });
