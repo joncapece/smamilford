@@ -267,17 +267,20 @@ ${s.giving ? `<section class="band"><div class="wrap">
 
 export function massTimesPage(ctx, items) {
   const { t } = ctx;
-  const table = items.length
-    ? `<div class="table-wrap"><table>
+  const groups = [
+    { title: t.lordsDay, items: items.filter((m) => m.section !== 'weekday') },
+    { title: t.weekdayLiturgies, items: items.filter((m) => m.section === 'weekday') },
+  ].filter((g) => g.items.length);
+  const tables = groups.map((g) => `<h2 class="mass-group">${esc(g.title)}</h2>
+<div class="table-wrap"><table>
   <thead><tr>
     <th scope="col">${esc(t.day)}</th><th scope="col">${esc(t.time)}</th><th scope="col">${esc(t.language)}</th><th scope="col">${esc(t.place)}</th><th scope="col">${esc(t.note)}</th>
   </tr></thead>
-  <tbody>${items.map((m) => `<tr>
+  <tbody>${g.items.map((m) => `<tr>
     <td>${txt(ctx, m.day)}</td><td>${esc(m.time || '')}</td><td>${esc(LANG_LABEL[m.language] || '')}</td><td>${esc(m.location || '')}</td><td>${txt(ctx, m.note)}</td>
   </tr>`).join('')}</tbody>
-</table></div>`
-    : empty(t.noMass);
-  return layout(ctx, { title: t.massTimes, path: '/mass-times', body: pageHead(t.massTimes) + section(table) });
+</table></div>`).join('');
+  return layout(ctx, { title: t.massTimes, path: '/mass-times', body: pageHead(t.massTimes) + section(tables || empty(t.noMass)) });
 }
 
 export function eventsPage(ctx, items) {

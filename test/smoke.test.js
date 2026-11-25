@@ -82,6 +82,18 @@ test('an event added in the editor appears on the events page, and HTML is clean
   assert.doesNotMatch(page, /<script>alert/);
 });
 
+test('Mass times are split into Lord\'s Day and Weekday Liturgies', async () => {
+  const add = (body) => admin('/admin/api/mass_times', { method: 'POST', json: body });
+  assert.equal((await add({ section: 'weekday', day: { en: 'Tuesday' }, time: '7:00 AM', language: 'en' })).status, 200);
+  assert.equal((await add({ section: 'lords_day', day: { en: 'Sunday' }, time: '9:00 AM', language: 'en' })).status, 200);
+  const page = await (await fetch(`${base}/mass-times`)).text();
+  const lords = page.indexOf('Lord');
+  const weekday = page.indexOf('Weekday Liturgies');
+  assert.ok(lords > 0 && weekday > lords, 'Lord\'s Day heading comes before Weekday Liturgies');
+  assert.ok(page.indexOf('Sunday') < weekday, 'Sunday Mass is in the Lord\'s Day group');
+  assert.ok(page.indexOf('Tuesday') > weekday, 'Tuesday Mass is in the Weekday group');
+});
+
 test('past events are not listed as upcoming', async () => {
   await admin('/admin/api/events', {
     method: 'POST',

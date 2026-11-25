@@ -6,6 +6,11 @@
 
 export const LANGS = ['en', 'es', 'pt'];
 
+export const MASS_SECTION_OPTIONS = [
+  { value: 'lords_day', label: "Lord's Day (Saturday/Sunday)" },
+  { value: 'weekday', label: 'Weekday Liturgies' },
+];
+
 export const LANG_OPTIONS = [
   { value: 'en', label: 'English' },
   { value: 'es', label: 'Español' },
@@ -144,8 +149,9 @@ export const collections = {
     label: 'Mass & Service Times',
     singular: 'time',
     sortBy: 'order',
-    list: ['day', 'time', 'language'],
+    list: ['section', 'day', 'time', 'language'],
     fields: [
+      { key: 'section', label: 'Section', type: 'select', required: true, options: MASS_SECTION_OPTIONS, help: 'Lord\'s Day Masses are on Saturday and Sunday. Weekday Liturgies are Monday to Friday.' },
       { key: 'day', label: 'Day', type: 'text', i18n: true, required: true, help: 'For example: Sunday' },
       { key: 'time', label: 'Time', type: 'text', required: true, help: 'For example: 9:00 AM' },
       { key: 'language', label: 'Language', type: 'select', options: LANG_OPTIONS, help: 'Shown next to the time so people know which Mass to attend.' },
