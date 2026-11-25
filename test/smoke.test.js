@@ -186,3 +186,13 @@ test('home page photos rotate, hidden photos are left out, and the emblem is the
   assert.doesNotMatch(html, /secret\.jpg/);
   assert.match(html, /@keyframes rot-2/);
 });
+
+test('a photo placed in page text keeps its description and shows on the site', async () => {
+  const saved = await admin('/admin/api/pages', {
+    method: 'POST',
+    json: { slug: 'photo-check', title: { en: 'Photos' }, body: { en: '<p>Our choir</p><img src="/uploads/choir-test.jpg" alt="The choir at Christmas">' } },
+  });
+  assert.equal(saved.status, 200);
+  const html = await (await fetch(`${base}/photo-check`)).text();
+  assert.match(html, /<img src="\/uploads\/choir-test\.jpg" alt="The choir at Christmas"/);
+});

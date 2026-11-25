@@ -107,7 +107,7 @@ async function renderList(name) {
 const TOOLBAR = [
   [{ header: [2, 3, false] }],
   ['bold', 'italic', 'underline'],
-  ['link'],
+  ['link', 'image'],
   [{ list: 'ordered' }, { list: 'bullet' }],
   ['blockquote'],
   ['clean'],
@@ -115,10 +115,39 @@ const TOOLBAR = [
 const rteField = (name, value) =>
   `<div class="rte-wrap"><div class="rte" data-name="${esc(name)}"></div></div><textarea name="${esc(name)}" hidden>${esc(value)}</textarea>`;
 
+// Toolbar "photo" button: choose a file, describe it, and place it in the text.
+function insertPhoto(quill) {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'image/jpeg,image/png,image/webp,image/gif';
+  input.addEventListener('change', async () => {
+    const file = input.files[0];
+    if (!file) return;
+    const fd = new FormData();
+    fd.append('file', file);
+    try {
+      const { url } = await api('api/upload', { method: 'POST', form: fd });
+      const alt = window.prompt('Describe this photo for people who cannot see it. Leave blank if it is only decoration.', '') ?? '';
+      const range = quill.getSelection(true) || { index: quill.getLength(), length: 0 };
+      quill.insertEmbed(range.index, 'image', url, 'user');
+      const img = [...quill.root.querySelectorAll('img')].reverse().find((i) => i.getAttribute('src') === url);
+      if (img) img.setAttribute('alt', alt.trim());
+      quill.setSelection(range.index + 1, 0);
+      toast('Photo added. Save the page to publish it.');
+    } catch (err) {
+      toast(err.message, true);
+    }
+  });
+  input.click();
+}
+
 function initEditors(root) {
   root.querySelectorAll('.rte').forEach((el) => {
     const ta = root.querySelector(`textarea[name="${el.dataset.name}"]`);
-    const q = new Quill(el, { theme: 'snow', modules: { toolbar: TOOLBAR } });
+    const q = new Quill(el, {
+      theme: 'snow',
+      modules: { toolbar: { container: TOOLBAR, handlers: { image() { insertPhoto(this.quill); } } } },
+    });
     q.clipboard.dangerouslyPasteHTML(ta?.value || '', 'silent');
     el._quill = q;
   });

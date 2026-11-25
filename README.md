@@ -28,6 +28,8 @@ Formatting in long text fields uses simple Markdown: blank line between paragrap
 
 Long text (page content, announcements, event descriptions, the welcome message, office hours) is edited in a visual editor, with a toolbar for headings, bold, italic, underline, links, lists and quotes. Nothing needs to be typed in code. The editor is served by the site itself, so it works without an outside connection.
 
+**To add a photo to page text,** click the photo button in the toolbar, choose a JPG, PNG, WebP or GIF, and describe it for people who can't see it (leave the description blank only if the photo is purely decorative). The photo is placed where the cursor is. Save the page to publish it. Photos can be up to 15 MB; large phone photos are fine, but smaller files load faster.
+
 Content saved from the editor is stored as simple HTML and cleaned on the way out, so scripts and unsafe markup cannot appear on the site. Older pages written in Markdown still display correctly, and the editor shows them as formatted text.
 
 ## Automatic translation
