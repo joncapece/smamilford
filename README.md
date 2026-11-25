@@ -11,7 +11,7 @@ Everything is in `/admin`:
 | Section | What it controls |
 |---|---|
 | **Site settings** | Parish name in each language, tagline, welcome message, address, phone, email, office hours, online giving link, social media links, footer note, time zone |
-| **Mass & Service Times** | Day, time, language, place, note. Shown on the home page and the Mass Times page |
+| **Mass & Service Times** | Section (Lord's Day or Weekday Liturgies), day, time, language, place, note. Shown on the home page and the Mass Times page, with Lord's Day and Weekday Liturgies under separate headings |
 | **Events** | Title, date, time, location, description, photo, sign-up link. Past events disappear automatically |
 | **Announcements** | Message, date, pinned to the top, optional "hide after" date |
 | **Ministries & Groups** | Name, description, when it meets, contact person, photo |
