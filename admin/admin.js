@@ -117,10 +117,10 @@ function fieldHtml(f, val, opts) {
   if (f.i18n) {
     const obj = typeof val === 'string' ? { en: val } : val || {};
     const multiline = f.type === 'markdown' || f.type === 'textarea';
+    const autoNote = (l) => (obj[l] && opts.auto?.[l] ? ' <em class="auto">auto-translated: please check</em>' : '');
     const inputs = LANGS.map(([l, name]) => `<label class="lang-field"><span>${name}${autoNote(l)}</span>${multiline
       ? `<textarea name="${f.key}.${l}" rows="${f.type === 'markdown' ? 6 : 3}" lang="${l}">${esc(obj[l])}</textarea>`
       : `<input type="text" name="${f.key}.${l}" value="${esc(obj[l])}" lang="${l}"${f.required && l === 'en' ? ' required' : ''}>`}</label>`).join('');
-    const autoNote = (l) => (obj[l] && opts.auto?.[l] ? ' <em class="auto">auto-translated: please check</em>' : '');
     return `<fieldset class="i18n"><legend>${label}</legend>${help}${inputs}</fieldset>`;
   }
 
