@@ -57,9 +57,8 @@ export function layout(ctx, { title, description = '', body, path = '/', image =
   const link = (item) => `<a href="${item.href}"${current(item.href)}>${esc(t[item.key])}</a>`;
   const navLinks = NAV.map((item) => {
     if (!item.group) return link(item);
-    const open = item.items.some((i) => i.href === path) ? ' open' : '';
-    const active = open ? ' class="active"' : '';
-    return `<details class="nav-group"${open}><summary${active}>${esc(t[item.group])}</summary>` +
+    const active = item.items.some((i) => i.href === path) ? ' class="active"' : '';
+    return `<details class="nav-group"><summary${active}>${esc(t[item.group])}</summary>` +
       `<div class="nav-panel">${item.items.map(link).join('')}</div></details>`;
   }).join('');
 
@@ -415,11 +414,28 @@ export function staffPage(ctx, items) {
   return layout(ctx, { title: ctx.t.staff, path: '/staff', body: pageHead(ctx.t.staff) + section(body) });
 }
 
+// Side menu listing a page and the pages that belong to it (set with "Part of" in the editor).
+function sideNav(ctx, page) {
+  const rootId = page.parent || page.id;
+  const root = ctx.pages.find((p) => p.id === rootId);
+  const children = ctx.pages.filter((p) => p.parent === rootId && p.id !== rootId);
+  if (!children.length && !page.parent) return '';
+  const items = [root, ...children].filter(Boolean);
+  if (items.length < 2 && !page.parent) return '';
+  const rootTitle = pick(root?.title, ctx.lang) || pick(page.title, ctx.lang);
+  return `<aside class="side-nav" aria-label="${esc(rootTitle)}">
+  <p class="side-title">${esc(rootTitle)}</p>
+  <ul>${items.map((p) => `<li><a href="/${esc(p.id)}"${p.id === page.id ? ' aria-current="page"' : ''}>${esc(pick(p.title, ctx.lang))}</a></li>`).join('')}</ul>
+</aside>`;
+}
+
 export function pageView(ctx, page) {
   const title = pick(page.title, ctx.lang);
   const banner = page.image ? `<img class="banner" src="${esc(page.image)}" alt="${esc(title)}" loading="eager">` : '';
   const content = `${banner}<div class="prose">${markdown(pick(page.body, ctx.lang))}</div>`;
-  return layout(ctx, { title, path: `/${page.id}`, image: page.image, body: pageHead(title) + section(content) });
+  const side = sideNav(ctx, page);
+  const inner = side ? `<div class="with-side"><div class="main-col">${content}</div>${side}</div>` : content;
+  return layout(ctx, { title, path: `/${page.id}`, image: page.image, body: pageHead(title) + section(inner) });
 }
 
 export function notFound(ctx) {

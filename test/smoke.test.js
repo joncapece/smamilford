@@ -277,6 +277,22 @@ test('the main menu groups pages under About Us and Worship, and a Contact page 
   assert.match(await contact.text(), /Contact/);
 });
 
+test('a page with sub-pages shows a side menu listing them', async () => {
+  const add = (body) => admin('/admin/api/pages', { method: 'POST', json: body });
+  assert.equal((await add({ slug: 'history', title: { en: 'Our History' }, body: { en: 'Overview.' }, order: 5 })).status, 200);
+  assert.equal((await add({ slug: 'chapter-one', title: { en: 'Chapter One' }, body: { en: 'Founding years.' }, parent: 'history', order: 1 })).status, 200);
+  assert.equal((await add({ slug: 'chapter-two', title: { en: 'Chapter Two' }, body: { en: 'Growth years.' }, parent: 'history', order: 2 })).status, 200);
+  const root = await (await fetch(`${base}/history`)).text();
+  assert.match(root, /class="side-nav"/);
+  assert.match(root, /href="\/chapter-one"/);
+  assert.match(root, /href="\/chapter-two"/);
+  const child = await (await fetch(`${base}/chapter-two`)).text();
+  assert.match(child, /aria-current="page">Chapter Two/);
+  assert.match(child, /href="\/history"/);
+  const plain = await (await fetch(`${base}/live-streaming`)).text();
+  assert.doesNotMatch(plain, /class="side-nav"/);
+});
+
 test('a photo placed in page text keeps its description and shows on the site', async () => {
   const saved = await admin('/admin/api/pages', {
     method: 'POST',

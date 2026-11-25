@@ -57,7 +57,7 @@ export const collections = {
       titleField(),
       { key: 'body', label: 'Content', type: 'markdown', i18n: true, help: MD },
       imageField('Banner image (optional)'),
-      { key: 'nav', label: 'Show in the main menu', type: 'boolean' },
+      { key: 'parent', label: 'Part of (optional)', type: 'slug', help: 'Web address of a page this one belongs to, such as history. The page then appears in that page\'s side menu.' },
       orderField('Menu order: lower numbers appear first.'),
     ],
   },
