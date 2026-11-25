@@ -6,6 +6,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { collections, settingsFields, LANGS, RESERVED_SLUGS } from './schema.js';
+import { fillTranslations } from './translate.js';
 
 export class HttpError extends Error {
   constructor(status, message) {
@@ -157,10 +158,11 @@ export async function saveRecord(name, input = {}) {
   return withLock(name, async () => {
     const list = await listRecords(name);
     const idx = list.findIndex((r) => r.id === id);
+    const warnings = await fillTranslations(c.fields, record, idx >= 0 ? list[idx] : null);
     if (idx >= 0) list[idx] = record;
     else list.push(record);
     await writeJson(name, list);
-    return record;
+    return { record, warnings };
   });
 }
 
@@ -184,8 +186,9 @@ export async function saveSettings(input = {}) {
   const { record } = normalize(settingsFields, input, errors);
   if (errors.length) throw new HttpError(400, errors.join('. '));
   return withLock('settings', async () => {
+    const warnings = await fillTranslations(settingsFields, record, await getSettings());
     await writeJson('settings', record);
-    return record;
+    return { record, warnings };
   });
 }
 

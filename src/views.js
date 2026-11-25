@@ -181,6 +181,29 @@ const empty = (text) => `<p class="empty">${esc(text)}</p>`;
 
 // ---- pages ----------------------------------------------------------------
 
+
+// Home page photos: each one fades in and out in turn. Pure CSS, so it works without JavaScript.
+// With reduced motion on, only the first photo is shown.
+const SLIDE_SECONDS = 6;
+function heroVisual(ctx, slides) {
+  if (!slides.length) {
+    return '<div class="hero-emblem"><img src="/img/emblem.webp" alt="" width="520" height="520"></div>';
+  }
+  const n = slides.length;
+  const total = n * SLIDE_SECONDS;
+  const w = 100 / n;
+  const f = Math.min(4, w / 4);
+  const keyframes = `@keyframes rot-${n}{0%{opacity:0}${f}%{opacity:1}${w - f}%{opacity:1}${w}%{opacity:0}100%{opacity:0}}`;
+  const items = slides.map((sl, i) => {
+    const alt = pick(sl.title, ctx.lang) || pick(ctx.settings.parish_name, ctx.lang, '');
+    const img = `<img src="${esc(sl.image)}" alt="${esc(alt)}" loading="${i === 0 ? 'eager' : 'lazy'}">`;
+    const inner = sl.link ? `<a href="${esc(sl.link)}"${/^https?:/.test(sl.link) ? ' rel="noopener"' : ''}>${img}</a>` : img;
+    const anim = n > 1 ? ` style="animation:rot-${n} ${total}s linear ${i * SLIDE_SECONDS}s infinite"` : ' style="opacity:1"';
+    return `<div class="slide"${anim}>${inner}</div>`;
+  }).join('');
+  return `<style>${keyframes}</style><div class="hero-emblem hero-photos"><div class="slides" aria-live="off">${items}</div></div>`;
+}
+
 export function home(ctx, d) {
   const { t, lang, settings } = ctx;
   const s = site(ctx);
@@ -199,7 +222,7 @@ export function home(ctx, d) {
         <a class="btn btn-outline" href="/events">${esc(t.events)}</a>
       </div>
     </div>
-    <div class="hero-emblem"><img src="/img/emblem.webp" alt="" width="520" height="520"></div>
+    ${heroVisual(ctx, d.slides || [])}
   </div>
 </section>
 <div class="fleur" aria-hidden="true"><span></span><i></i><span></span></div>

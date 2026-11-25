@@ -17,11 +17,41 @@ Everything is in `/admin`:
 | **Ministries & Groups** | Name, description, when it meets, contact person, photo |
 | **Staff & Leaders** | Name, role, email, phone, photo |
 | **Bulletins** | Upload the weekly PDF with its date. The most recent one is featured on the home page |
+| **Home page photos** | Photos that rotate in the main section of the home page |
 | **Pages** | Any new page, e.g. "Sacraments" at `/sacraments`. Tick "Show in the main menu" to add it to the menu |
 
-Each text field has three boxes (English, Español, Português). Fill in the languages you have. Visitors who choose a language see that version, and anything left blank falls back to English.
+Each text field has three boxes (English, Español, Português). Type English, and the Spanish and Portuguese boxes are filled in automatically if a translation key is set (see below). You can always edit them. Anything left blank falls back to English.
 
 Formatting in long text fields uses simple Markdown: blank line between paragraphs, `**bold**`, `*italic*`, `[link text](https://...)`, `## Heading`, and `- bullet points`. Scripts and unsafe HTML are removed automatically.
+
+## Automatic translation
+
+Staff type in English. When a record is saved, any blank Spanish or Portuguese box is filled in automatically by [DeepL](https://www.deepl.com/pro-api).
+
+- **Turn it on:** add your DeepL API key to the settings file on the droplet, then restart the site:
+  ```bash
+  echo 'DEEPL_API_KEY=your-key-here' >> /etc/stmary-site.env
+  systemctl restart stmary-site
+  ```
+  Free-plan keys (ending in `:fx`) are detected automatically. The key stays on the server and is never written into the content files or the code.
+- **It never overwrites a person's text.** Only blank boxes are filled. If someone types their own Spanish or Portuguese, it is kept.
+- **Machine translations are marked** with "auto-translated: please check" in the editor. Edit them whenever you like. Once you edit one, it is treated as your own text.
+- **If the English changes**, an untouched machine translation is redone. A translation someone has edited is kept.
+- **If the service is unavailable**, the save still goes through, and the editor shows a message saying which translation failed.
+- Without a key, nothing is translated. The English text shows in the other languages until someone types the translation.
+
+Machine translation is a good first draft, not a replacement for a native speaker. Ask someone who speaks Spanish or Portuguese to check anything important (such as the Mass times and the welcome message) before it goes live.
+
+## Rotating photos on the home page
+
+**Home page photos** in the editor are shown in the main section of the home page. They fade in and out in turn, about every 6 seconds.
+
+- Add as many as you like. Use landscape photos, about 1200 × 900 pixels.
+- Set the **Rotation order**. Lower numbers come first.
+- Tick **Hide this photo** to take one off the rotation without deleting it.
+- Add a **description**, which screen readers read aloud, and an optional **link** that opens when the photo is clicked.
+- If there are no visible photos, the parish emblem is shown instead.
+- Visitors who have turned on reduced motion see only the first photo, with no animation.
 
 ## Design
 

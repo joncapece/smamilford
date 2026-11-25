@@ -48,6 +48,26 @@ export const collections = {
     ],
   },
 
+  slides: {
+    label: 'Home page photos',
+    singular: 'photo',
+    sortBy: 'order',
+    list: ['title', 'order', 'hidden'],
+    fields: [
+      {
+        key: 'image',
+        label: 'Photo',
+        type: 'image',
+        required: true,
+        help: 'Landscape photo, about 1200 × 900 pixels (4:3). The photos on the home page rotate through every visible photo, in the order below.',
+      },
+      { key: 'title', label: 'Description (for screen readers)', type: 'text', i18n: true, help: 'Briefly describe the photo. Translated automatically if a translation key is set.' },
+      { key: 'link', label: 'Link when clicked (optional)', type: 'url', help: 'Starts with https://, or a page on this site such as /events' },
+      { key: 'hidden', label: 'Hide this photo', type: 'boolean' },
+      orderField('Rotation order: lower numbers appear first.'),
+    ],
+  },
+
   announcements: {
     label: 'Announcements',
     singular: 'announcement',

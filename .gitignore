@@ -2,7 +2,3 @@ node_modules/
 content/
 *.tmp
 .DS_Store
-
-# St. Mary site
-content/
-.DS_Store

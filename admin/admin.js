@@ -117,9 +117,10 @@ function fieldHtml(f, val, opts) {
   if (f.i18n) {
     const obj = typeof val === 'string' ? { en: val } : val || {};
     const multiline = f.type === 'markdown' || f.type === 'textarea';
-    const inputs = LANGS.map(([l, name]) => `<label class="lang-field"><span>${name}</span>${multiline
+    const inputs = LANGS.map(([l, name]) => `<label class="lang-field"><span>${name}${autoNote(l)}</span>${multiline
       ? `<textarea name="${f.key}.${l}" rows="${f.type === 'markdown' ? 6 : 3}" lang="${l}">${esc(obj[l])}</textarea>`
       : `<input type="text" name="${f.key}.${l}" value="${esc(obj[l])}" lang="${l}"${f.required && l === 'en' ? ' required' : ''}>`}</label>`).join('');
+    const autoNote = (l) => (obj[l] && opts.auto?.[l] ? ' <em class="auto">auto-translated: please check</em>' : '');
     return `<fieldset class="i18n"><legend>${label}</legend>${help}${inputs}</fieldset>`;
   }
 
@@ -151,7 +152,7 @@ function fieldHtml(f, val, opts) {
   return `<div class="field"><label for="${id}">${label}</label>${help}${control}</div>`;
 }
 
-const fieldsHtml = (fields, values, opts = {}) => fields.map((f) => fieldHtml(f, values[f.key], opts)).join('');
+const fieldsHtml = (fields, values, opts = {}) => fields.map((f) => fieldHtml(f, values[f.key], { ...opts, auto: values._auto?.[f.key] || {} })).join('');
 
 function collectForm(fields, form) {
   const data = {};
@@ -213,8 +214,9 @@ function renderForm(name, record) {
       <div class="actions-bar"><button type="submit">Save</button><a href="#c/${name}">Cancel</a></div>
     </form>`;
   bindForm($('#rec'), c.fields, async (data) => {
-    await api(`api/${name}`, { method: 'POST', json: isNew ? data : { ...data, id: record.id } });
-    toast('Saved. The website is updated.');
+    const r = await api(`api/${name}`, { method: 'POST', json: isNew ? data : { ...data, id: record.id } });
+    if (r.warnings?.length) toast(r.warnings.join(' '), true);
+    else toast('Saved. The website is updated.');
     location.hash = `#c/${name}`;
   });
 }
@@ -224,13 +226,17 @@ async function renderSettings() {
   main().innerHTML = `
     <div class="head"><h1>Site settings</h1></div>
     <p class="help-lead">These details appear across the whole website: the header, the footer and the home page.</p>
+    <p class="help-lead">${schema.translation
+      ? 'Automatic translation is <strong>on</strong>: blank Spanish and Portuguese boxes are filled in from the English when you save. Check them, and edit as needed.'
+      : 'Automatic translation is <strong>off</strong>. Fill in each language yourself, or ask the web team to add a translation key.'}</p>
     <form id="rec" novalidate>
       ${fieldsHtml(schema.settings, values)}
       <div class="actions-bar"><button type="submit">Save settings</button></div>
     </form>`;
   bindForm($('#rec'), schema.settings, async (data) => {
-    await api('api/settings', { method: 'PUT', json: data });
-    toast('Settings saved.');
+    const r = await api('api/settings', { method: 'PUT', json: data });
+    if (r.warnings?.length) toast(r.warnings.join(' '), true);
+    else toast('Settings saved.');
     renderSettings();
   });
 }

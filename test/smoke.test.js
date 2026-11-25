@@ -131,3 +131,58 @@ test('uploads must be real images or PDFs', async () => {
   const r = await admin('/admin/api/upload', { method: 'POST', body: form, headers: {} });
   assert.equal(r.status, 415);
 });
+
+test('English text is translated automatically, and a person\'s own translation is kept', async () => {
+  const { setTranslator } = await import('../src/translate.js');
+  setTranslator(async (texts, lang) => texts.map((t) => `[${lang}] ${t}`));
+  try {
+    const created = await (await admin('/admin/api/ministries', {
+      method: 'POST', json: { name: { en: 'Choir' }, description: { en: 'We sing.' } },
+    })).json();
+    assert.equal(created.record.name.es, '[es] Choir');
+    assert.equal(created.record.name.pt, '[pt] Choir');
+    assert.ok(created.record._auto, 'machine translations are marked');
+
+    // A person types their own Spanish: it must not be overwritten when the English changes
+    const id = created.record.id;
+    await admin('/admin/api/ministries', { method: 'POST', json: { id, name: { en: 'Choir', es: 'Coro parroquial' }, description: { en: 'We sing.' } } });
+    const after = (await (await admin('/admin/api/ministries')).json()).find((m) => m.id === id);
+    assert.equal(after.name.es, 'Coro parroquial');
+    assert.equal(after.name.pt, '[pt] Choir', 'untouched machine translation is kept');
+
+    // English changes: the untouched machine translation is redone
+    const r = await (await admin('/admin/api/ministries', { method: 'POST', json: { id, name: { en: 'Parish Choir', es: 'Coro parroquial' }, description: { en: 'We sing.' } } })).json();
+    assert.equal(r.record.name.pt, '[pt] Parish Choir');
+    assert.equal(r.record.name.es, 'Coro parroquial');
+  } finally {
+    setTranslator(null);
+  }
+});
+
+test('a failed translation is reported but the save still succeeds', async () => {
+  const { setTranslator } = await import('../src/translate.js');
+  setTranslator(async () => { throw new Error('service down'); });
+  try {
+    const r = await admin('/admin/api/staff', { method: 'POST', json: { name: 'Sam Test', role: { en: 'Organist' } } });
+    assert.equal(r.status, 200);
+    const body = await r.json();
+    assert.match(body.warnings.join(' '), /service down/);
+    assert.equal(body.record.role.en, 'Organist');
+  } finally {
+    setTranslator(null);
+  }
+});
+
+test('home page photos rotate, hidden photos are left out, and the emblem is the fallback', async () => {
+  const before = await (await fetch(`${base}/`)).text();
+  assert.match(before, /hero-emblem/);
+  await admin('/admin/api/slides', { method: 'POST', json: { image: '/uploads/a.jpg', title: { en: 'Choir at Christmas' }, order: 1 } });
+  await admin('/admin/api/slides', { method: 'POST', json: { image: '/uploads/b.jpg', order: 2 } });
+  await admin('/admin/api/slides', { method: 'POST', json: { image: '/uploads/secret.jpg', hidden: true, order: 3 } });
+  const html = await (await fetch(`${base}/?lang=en`)).text();
+  assert.equal((html.match(/class="slide"/g) || []).length, 2);
+  assert.match(html, /src="\/uploads\/a\.jpg"/);
+  assert.match(html, /alt="Choir at Christmas"/);
+  assert.doesNotMatch(html, /secret\.jpg/);
+  assert.match(html, /@keyframes rot-2/);
+});

@@ -7,6 +7,7 @@ import { UI } from './i18n.js';
 import { LANGS, collections, settingsFields, RESERVED_SLUGS } from './schema.js';
 import * as store from './content.js';
 import * as views from './views.js';
+import { translationEnabled } from './translate.js';
 import { pick, todayIn } from './util.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -95,6 +96,7 @@ export function createApp(options = {}) {
   adminApi.get('/schema', (req, res) => res.json({
     collections: Object.entries(collections).map(([key, c]) => ({ key, ...c })),
     settings: settingsFields,
+    translation: translationEnabled(),
   }));
   adminApi.get('/settings', wrap(async (req, res) => res.json(await store.getSettings())));
   adminApi.put('/settings', express.json({ limit: '1mb' }), wrap(async (req, res) =>
@@ -131,10 +133,11 @@ export function createApp(options = {}) {
 
   app.get('/', wrap(async (req, res) => {
     const ctx = await loadCtx(req, res);
-    const [mass, events, anns, ministries, bulletins] = await Promise.all(
-      ['mass_times', 'events', 'announcements', 'ministries', 'bulletins'].map((n) => store.listRecords(n)),
+    const [mass, events, anns, ministries, bulletins, slides] = await Promise.all(
+      ['mass_times', 'events', 'announcements', 'ministries', 'bulletins', 'slides'].map((n) => store.listRecords(n)),
     );
     send(res, views.home(ctx, {
+      slides: sortRecords(slides.filter((x) => x.image && !x.hidden), 'order'),
       massTimes: sortRecords(mass, 'order'),
       events: upcomingEvents(events, ctx.today).slice(0, 3),
       announcements: activeAnnouncements(anns, ctx.today).slice(0, 3),
