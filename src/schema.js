@@ -66,6 +66,8 @@ export const collections = {
         help: 'Landscape photo, about 1200 × 900 pixels (4:3). The photos on the home page rotate through every visible photo, in the order below.',
       },
       { key: 'title', label: 'Description (for screen readers)', type: 'text', i18n: true, help: 'Briefly describe the photo. Translated automatically if a translation key is set.' },
+      { key: 'caption_heading', label: 'Caption heading (optional)', type: 'text', i18n: true, help: 'Large line of text shown on top of the photo.' },
+      { key: 'caption_body', label: 'Caption text (optional)', type: 'textarea', i18n: true, help: 'Smaller text shown under the heading.' },
       { key: 'link', label: 'Link when clicked (optional)', type: 'url', help: 'Starts with https://, or a page on this site such as /events' },
       { key: 'hidden', label: 'Hide this photo', type: 'boolean' },
       orderField('Rotation order: lower numbers appear first.'),

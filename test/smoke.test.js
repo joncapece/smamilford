@@ -199,6 +199,12 @@ test('home page photos rotate, hidden photos are left out, and the emblem is the
   assert.match(html, /@keyframes rot-2/);
 });
 
+test('home page photos can show a caption heading and text', async () => {
+  await admin('/admin/api/slides', { method: 'POST', json: { image: '/uploads/c.jpg', caption_heading: { en: 'Welcome Home' }, caption_body: { en: 'Sunday Mass at 9 AM' }, order: 4 } });
+  const html = await (await fetch(`${base}/`)).text();
+  assert.match(html, /<div class="slide-caption"><h2>Welcome Home<\/h2><p>Sunday Mass at 9 AM<\/p><\/div>/);
+});
+
 test('a photo placed in page text keeps its description and shows on the site', async () => {
   const saved = await admin('/admin/api/pages', {
     method: 'POST',

@@ -195,8 +195,13 @@ function heroSlides(ctx, slides) {
     const alt = pick(sl.title, ctx.lang) || pick(ctx.settings.parish_name, ctx.lang, '');
     const img = `<img src="${esc(sl.image)}" alt="${esc(alt)}" loading="${i === 0 ? 'eager' : 'lazy'}">`;
     const inner = sl.link ? `<a href="${esc(sl.link)}"${/^https?:/.test(sl.link) ? ' rel="noopener"' : ''}>${img}</a>` : img;
+    const heading = pick(sl.caption_heading, ctx.lang);
+    const body = pick(sl.caption_body, ctx.lang);
+    const caption = heading || body
+      ? `<div class="slide-caption">${heading ? `<h2>${esc(heading)}</h2>` : ''}${body ? `<p>${nl2br(body)}</p>` : ''}</div>`
+      : '';
     const anim = n > 1 ? ` style="animation:rot-${n} ${total}s linear ${i * SLIDE_SECONDS}s infinite"` : ' style="opacity:1"';
-    return `<div class="slide"${anim}>${inner}</div>`;
+    return `<div class="slide"${anim}>${inner}${caption}</div>`;
   }).join('');
   return `<style>${keyframes}</style><div class="slides" aria-live="off">${items}</div>`;
 }
