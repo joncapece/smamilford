@@ -47,6 +47,35 @@ const NAV = [
   { href: '/contact', key: 'navContact' },
 ];
 
+// Editing tools for signed-in staff: a menu that opens the content editor in a panel over the page.
+function editTools(ctx, path) {
+  const slug = path.slice(1);
+  const onPage = slug && ctx.pages.some((p) => p.id === slug);
+  const items = [
+    ...(onPage ? [[`Edit this page`, `c/pages/${slug}`]] : []),
+    ['New event', 'c/events/new'],
+    ['New announcement', 'c/announcements/new'],
+    ['Events', 'c/events'],
+    ['Announcements', 'c/announcements'],
+    ['Mass times', 'c/mass_times'],
+    ['Ministries', 'c/ministries'],
+    ['Staff', 'c/staff'],
+    ['Bulletins', 'c/bulletins'],
+    ['Pages', 'c/pages'],
+    ['Home photos', 'c/slides'],
+    ['Site settings', 'settings'],
+  ];
+  return `<details class="edit-menu">
+  <summary>Edit website</summary>
+  <ul>${items.map(([label, hash]) => `<li><button type="button" data-edit="${esc(hash)}">${esc(label)}</button></li>`).join('')}</ul>
+</details>
+<dialog id="quick-edit" class="quick-edit" aria-label="Edit content">
+  <div class="qe-head"><span>Edit content</span><button type="button" data-close>Close</button></div>
+  <iframe title="Content editor" src="about:blank"></iframe>
+</dialog>
+<script src="/js/quick-edit.js?v=${ASSET_VERSION}" defer></script>`;
+}
+
 export function layout(ctx, { title, description = '', body, path = '/', image = '' }) {
   const { lang, t, settings, pages } = ctx;
   const s = site(ctx);
@@ -126,6 +155,7 @@ ${body}
   <p class="wrap footer-legal">© ${new Date().getFullYear()} ${esc(s.name)}. ${esc(pick(settings.footer_note, lang, ''))} ${esc(t.rights)}</p>
 </footer>
 <script src="/js/nav.js?v=${ASSET_VERSION}" defer></script>
+${ctx.editor ? editTools(ctx, path) : ''}
 </body>
 </html>`;
 }

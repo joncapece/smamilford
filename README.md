@@ -18,6 +18,7 @@ Everything is in `/admin`:
 | **Staff & Leaders** | Name, role, email, phone, photo |
 | **Bulletins** | Upload the weekly PDF with its date. The most recent one is featured on the home page |
 | **Home page photos** | Photos that rotate in the main section of the home page |
+| **Quick editing** | Signed in to the editor once in a browser, the public site shows an “Edit website” button. It opens the editor over the page, so staff can edit text, add events and announcements, and change settings without leaving the site. |
 | **Pages** | Any new page, e.g. "Sacraments" at `/sacraments`. Tick "Show in the main menu" to add it to the menu |
 
 Each text field has three boxes (English, Español, Português). Type English. When automatic translation is on (see below), the Spanish and Portuguese are filled in for you and there are no boxes to type them in. Without a key, the Spanish and Portuguese boxes appear, and anything left blank falls back to English.

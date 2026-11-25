@@ -79,7 +79,7 @@ export function createApp(options = {}) {
     res.set('X-Content-Type-Options', 'nosniff');
     res.set('Referrer-Policy', 'strict-origin-when-cross-origin');
     res.set('X-Frame-Options', 'SAMEORIGIN');
-    res.set('Vary', 'Cookie, Accept-Language');
+    res.set('Vary', 'Cookie, Accept-Language, Authorization');
     next();
   });
 
@@ -96,12 +96,15 @@ export function createApp(options = {}) {
     const y = crypto.createHash('sha256').update(String(b)).digest();
     return crypto.timingSafeEqual(x, y);
   };
-  const requireAdmin = (req, res, next) => {
+  // True when the request carries the editor's sign-in (the browser sends it after the first sign-in).
+  const signedIn = (req) => {
     const header = req.headers.authorization || '';
-    if (header.startsWith('Basic ')) {
-      const [user, ...rest] = Buffer.from(header.slice(6), 'base64').toString('utf8').split(':');
-      if (safeEq(user ?? '', adminUser) && safeEq(rest.join(':'), adminPassword)) return next();
-    }
+    if (!header.startsWith('Basic ')) return false;
+    const [user, ...rest] = Buffer.from(header.slice(6), 'base64').toString('utf8').split(':');
+    return safeEq(user ?? '', adminUser) && safeEq(rest.join(':'), adminPassword);
+  };
+  const requireAdmin = (req, res, next) => {
+    if (signedIn(req)) return next();
     res.set('WWW-Authenticate', 'Basic realm="St. Mary content editor", charset="UTF-8"');
     return res.status(401).type('text').send('Sign-in required');
   };
@@ -158,9 +161,14 @@ export function createApp(options = {}) {
       settings,
       pages: sortRecords(pages, 'order'),
       today: todayIn(settings.timezone),
+      editor: signedIn(req), // signed-in staff see editing tools on the public pages
     };
   };
-  const send = (res, html) => res.type('html').send(html);
+  // Pages differ for signed-in staff, so they must never be shared from a cache.
+  const send = (res, html) => {
+    res.set('Cache-Control', 'no-cache');
+    res.type('html').send(html);
+  };
 
   app.get('/', wrap(async (req, res) => {
     const ctx = await loadCtx(req, res);
@@ -219,9 +227,10 @@ export function createApp(options = {}) {
     try {
       ctx = await loadCtx(req, res);
     } catch {
-      ctx = { lang: 'en', t: UI.en, settings: {}, pages: [], today: todayIn() };
+      ctx = { lang: 'en', t: UI.en, settings: {}, pages: [], today: todayIn(), editor: false };
     }
     const html = status === 404 ? views.notFound(ctx) : views.errorPage(ctx);
+    res.set('Cache-Control', 'no-cache');
     return res.status(status).type('html').send(html);
   });
 

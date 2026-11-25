@@ -7,6 +7,15 @@ const LANGS = [['en', 'English'], ['es', 'Español'], ['pt', 'Português']];
 const pickText = (v) => (typeof v === 'string' ? v : v?.en || v?.es || v?.pt || '');
 const main = () => $('#main');
 
+// Opened from the public website's "Edit website" menu, the editor runs inside a panel.
+const embedded = new URLSearchParams(location.search).has('embed');
+if (embedded) document.body.classList.add('embed');
+// After a save: inside the panel, tell the website to reload (it closes the panel); otherwise go on.
+function afterSave(then) {
+  if (embedded) parent.postMessage({ type: 'saved' }, location.origin);
+  else then();
+}
+
 let schema = null;
 const collection = (key) => schema.collections.find((c) => c.key === key);
 const fieldLabel = (c, key) => c.fields.find((f) => f.key === key)?.label || key;
@@ -333,7 +342,7 @@ function renderForm(name, record) {
     const r = await api(`api/${name}`, { method: 'POST', json: isNew ? data : { ...data, id: record.id } });
     if (r.warnings?.length) toast(r.warnings.join(' '), true);
     else toast('Saved. The website is updated.');
-    location.hash = `#c/${name}`;
+    if (!r.warnings?.length) afterSave(() => { location.hash = `#c/${name}`; });
   });
 }
 
@@ -353,7 +362,7 @@ async function renderSettings() {
     const r = await api('api/settings', { method: 'PUT', json: data });
     if (r.warnings?.length) toast(r.warnings.join(' '), true);
     else toast('Settings saved.');
-    renderSettings();
+    if (!r.warnings?.length) afterSave(() => renderSettings());
   });
 }
 

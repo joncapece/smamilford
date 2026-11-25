@@ -423,3 +423,17 @@ tbody tr:nth-child(even) { background: var(--cream); }
 .prose th, .prose td { border: 1px solid #d9dfea; padding: 0.55rem 0.7rem; text-align: left; vertical-align: top; }
 .prose th { background: #f4f6fa; color: var(--navy); font-weight: 700; }
 .prose td p, .prose th p { margin: 0; }
+
+/* ---- editing tools (signed-in staff only) ---- */
+.edit-menu { position: fixed; left: 1rem; bottom: 1rem; z-index: 60; font-family: inherit; }
+.edit-menu summary { list-style: none; cursor: pointer; background: var(--navy); color: #fff; font-weight: 700; padding: 0.6rem 1.1rem; border-radius: 999px; box-shadow: 0 6px 20px rgba(10, 24, 56, .3); }
+.edit-menu summary::-webkit-details-marker { display: none; }
+.edit-menu summary:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+.edit-menu ul { position: absolute; left: 0; bottom: calc(100% + 0.5rem); list-style: none; margin: 0; padding: 0.4rem; min-width: 220px; background: #fff; border-radius: 10px; box-shadow: 0 10px 30px rgba(10, 24, 56, .25); }
+.edit-menu button { display: block; width: 100%; text-align: left; background: none; border: 0; padding: 0.55rem 0.8rem; border-radius: 6px; font: inherit; color: var(--navy); cursor: pointer; }
+.edit-menu button:hover, .edit-menu button:focus-visible { background: #f2e3a6; outline: none; }
+.quick-edit { width: min(1100px, 96vw); height: 88vh; padding: 0; border: 0; border-radius: 10px; overflow: hidden; }
+.quick-edit::backdrop { background: rgba(10, 24, 56, .6); }
+.quick-edit .qe-head { display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 1rem; background: var(--navy); color: #fff; font-weight: 700; }
+.quick-edit .qe-head button { background: #fff; color: var(--navy); border: 0; border-radius: 6px; padding: 0.35rem 0.8rem; font: inherit; font-weight: 700; cursor: pointer; }
+.quick-edit iframe { display: block; width: 100%; height: calc(88vh - 48px); border: 0; background: #fff; }

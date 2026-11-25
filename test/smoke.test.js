@@ -305,6 +305,34 @@ test('a page with sub-pages shows a side menu listing them', async () => {
   assert.doesNotMatch(plain, /class="side-nav"/);
 });
 
+test('editing tools show on public pages only when signed in, and pages are not cached', async () => {
+  const visitor = await fetch(`${base}/events`);
+  const visitorHtml = await visitor.text();
+  assert.doesNotMatch(visitorHtml, /edit-menu/);
+  assert.doesNotMatch(visitorHtml, /id="quick-edit"/);
+  assert.match(visitor.headers.get('cache-control') || '', /no-cache/);
+
+  const staff = await admin('/events');
+  const staffHtml = await staff.text();
+  assert.equal(staff.status, 200);
+  assert.match(staffHtml, /class="edit-menu"/);
+  assert.match(staffHtml, /data-edit="c\/events\/new"/);
+  assert.match(staffHtml, /id="quick-edit"/);
+  assert.match(staffHtml, /quick-edit\.js/);
+
+  const home = await admin('/');
+  assert.match(await home.text(), /data-edit="settings"/);
+});
+
+test('a page on the site offers to edit that page', async () => {
+  const add = (body) => admin('/admin/api/pages', { method: 'POST', json: body });
+  assert.equal((await add({ slug: 'parish-life', title: { en: 'Parish Life' }, body: { en: 'Welcome.' }, order: 7 })).status, 200);
+  const html = await (await admin('/parish-life')).text();
+  assert.match(html, /data-edit="c\/pages\/parish-life"/);
+  const visitor = await (await fetch(`${base}/parish-life`)).text();
+  assert.doesNotMatch(visitor, /data-edit=/);
+});
+
 test('tables made in the editor show on the site, and scripts inside them are removed', async () => {
   const body = '<table data-row="r1" style="width: 400px"><tbody><tr data-row="r1"><th data-row="r1" data-cell="c1" colspan="2">Mass</th></tr>' +
     '<tr data-row="r2"><td data-row="r2" data-cell="c2">Sunday</td><td data-row="r2" data-cell="c3"><script>alert(1)</script>9:00</td></tr></tbody></table>';
