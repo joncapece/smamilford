@@ -29,11 +29,8 @@ export function createAuth({ adminUser, adminPassword }) {
 
   // The signed-in person for this request, or null for visitors.
   async function currentUser(req) {
-    const header = req.headers.authorization || '';
-    if (header.startsWith('Basic ')) {
-      const [user, ...rest] = Buffer.from(header.slice(6), 'base64').toString('utf8').split(':');
-      if (user === adminUser && rest.join(':') === adminPassword) return owner;
-    }
+    // Only the session cookie counts. Browser-cached username and password prompts are ignored,
+    // so signing out always works.
     const raw = cookieValue(req, SESSION_COOKIE);
     if (!raw) return null;
     const data = await readJson(FILE, { sessions: [] });

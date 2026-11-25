@@ -16,16 +16,21 @@ await ensureSeeded();
 const app = createApp({ adminPassword: PASSWORD });
 let server;
 let base;
-const auth = `Basic ${Buffer.from(`admin:${PASSWORD}`).toString('base64')}`;
+let auth = ''; // session cookie for the owner, set up before the tests run
 const admin = (p, opts = {}) => fetch(base + p, {
   ...opts,
-  headers: { Authorization: auth, ...(opts.json ? { 'Content-Type': 'application/json' } : {}) },
+  headers: { Cookie: auth, ...(opts.json ? { 'Content-Type': 'application/json' } : {}) },
   body: opts.json ? JSON.stringify(opts.json) : opts.body,
 });
 
 before(() => new Promise((resolve) => {
-  server = app.listen(0, '127.0.0.1', () => {
+  server = app.listen(0, '127.0.0.1', async () => {
     base = `http://127.0.0.1:${server.address().port}`;
+    const login = await fetch(`${base}/sign-in/owner`, {
+      method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ username: 'admin', password: PASSWORD, next: '/admin' }), redirect: 'manual',
+    });
+    auth = login.headers.get('set-cookie').split(';')[0];
     resolve();
   });
 }));
@@ -372,6 +377,22 @@ test('staff sign-in: the owner can sign in with the backup form, and visitors ca
   assert.match(footer, /action="\/sign-out"/);
   const visitorFooter = await (await fetch(`${base}/`)).text();
   assert.match(visitorFooter, /href="\/sign-in"/);
+});
+
+test('signing out ends the session, even if an old browser login prompt is cached', async () => {
+  const cached = `Basic ${Buffer.from(`admin:${PASSWORD}`).toString('base64')}`;
+  assert.equal((await fetch(`${base}/admin/api/me`, { headers: { Authorization: cached } })).status, 401);
+  // A separate sign-in, so the shared test session stays signed in for the tests below.
+  const login = await fetch(`${base}/sign-in/owner`, {
+    method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ username: 'admin', password: PASSWORD, next: '/' }), redirect: 'manual',
+  });
+  const mine = login.headers.get('set-cookie').split(';')[0];
+  assert.equal((await fetch(`${base}/admin/api/me`, { headers: { Cookie: mine } })).status, 200);
+  const out = await fetch(`${base}/sign-out`, { method: 'POST', headers: { Cookie: mine }, redirect: 'manual' });
+  assert.equal(out.status, 302);
+  assert.match(out.headers.get('set-cookie'), /session=;.*Max-Age=0/);
+  assert.equal((await fetch(`${base}/admin/api/me`, { headers: { Cookie: mine } })).status, 401);
 });
 
 test('Microsoft sign-in sends people to the Entra tenant, and rejects unknown returns', async () => {
