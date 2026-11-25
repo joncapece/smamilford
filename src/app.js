@@ -109,10 +109,21 @@ export function createApp(options = {}) {
   const adminApi = express.Router();
   const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: store.MAX_UPLOAD } });
   adminApi.use(requireAdmin);
-  adminApi.get('/schema', (req, res) => res.json({
-    collections: Object.entries(collections).map(([key, c]) => ({ key, ...c })),
-    settings: settingsFields,
-    translation: translationEnabled(),
+  adminApi.get('/schema', wrap(async (req, res) => {
+    const pages = sortRecords(await store.listRecords('pages'), 'order');
+    const pageOptions = [
+      { value: '', label: 'None (main page)' },
+      ...pages.map((p) => ({ value: p.id, label: `${pick(p.title, 'en') || p.id} (${p.id})` })),
+    ];
+    res.json({
+      collections: Object.entries(collections).map(([key, c]) => ({
+        key,
+        ...c,
+        fields: c.fields.map((f) => (f.optionsFrom === 'pages' ? { ...f, options: pageOptions } : f)),
+      })),
+      settings: settingsFields,
+      translation: translationEnabled(),
+    });
   }));
   adminApi.get('/settings', wrap(async (req, res) => res.json(toEditable(settingsFields, await store.getSettings()))));
   adminApi.put('/settings', express.json({ limit: '1mb' }), wrap(async (req, res) =>

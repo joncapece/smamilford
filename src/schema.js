@@ -57,7 +57,7 @@ export const collections = {
       titleField(),
       { key: 'body', label: 'Content', type: 'markdown', i18n: true, help: MD },
       imageField('Banner image (optional)'),
-      { key: 'parent', label: 'Part of (optional)', type: 'slug', help: 'Web address of a page this one belongs to, such as history. The page then appears in that page\'s side menu.' },
+      { key: 'parent', label: 'Sub-page of', type: 'select', optionsFrom: 'pages', help: 'Choose a page to make this a sub-page of. It then appears under that page in the main menu and in its side menu. Choose "None" for a main page.' },
       orderField('Menu order: lower numbers appear first.'),
     ],
   },

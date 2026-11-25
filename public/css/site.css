@@ -414,3 +414,8 @@ tbody tr:nth-child(even) { background: var(--cream); }
   .with-side { grid-template-columns: 1fr; gap: 1.75rem; }
   .side-nav { position: static; }
 }
+
+/* ---- sub-pages in the main menu ---- */
+.nav-item { display: flex; flex-direction: column; }
+.nav-sub { display: flex; flex-direction: column; gap: 0.1rem; padding-left: 0.9rem; margin-top: 0.1rem; border-left: 2px solid #f2e3a6; }
+.nav-sub a { font-weight: 400; font-size: 0.92rem; }
