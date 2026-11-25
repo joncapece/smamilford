@@ -24,6 +24,12 @@ Each text field has three boxes (English, Español, Português). Type English. W
 
 Formatting in long text fields uses simple Markdown: blank line between paragraphs, `**bold**`, `*italic*`, `[link text](https://...)`, `## Heading`, and `- bullet points`. Scripts and unsafe HTML are removed automatically.
 
+## Rich text editing
+
+Long text (page content, announcements, event descriptions, the welcome message, office hours) is edited in a visual editor, with a toolbar for headings, bold, italic, underline, links, lists and quotes. Nothing needs to be typed in code. The editor is served by the site itself, so it works without an outside connection.
+
+Content saved from the editor is stored as simple HTML and cleaned on the way out, so scripts and unsafe markup cannot appear on the site. Older pages written in Markdown still display correctly, and the editor shows them as formatted text.
+
 ## Automatic translation
 
 Staff type in English. When a record is saved, any blank Spanish or Portuguese box is filled in automatically by [DeepL](https://www.deepl.com/pro-api).

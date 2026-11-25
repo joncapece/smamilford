@@ -8,7 +8,7 @@ import { LANGS, collections, settingsFields, RESERVED_SLUGS } from './schema.js'
 import * as store from './content.js';
 import * as views from './views.js';
 import { translationEnabled } from './translate.js';
-import { pick, todayIn } from './util.js';
+import { markdown, pick, todayIn } from './util.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const PUBLIC_DIR = path.join(ROOT, 'public');
@@ -47,6 +47,19 @@ const activeAnnouncements = (list, today) =>
   list
     .filter((a) => !(a.expires && a.expires < today))
     .sort((a, b) => Number(!!b.pinned) - Number(!!a.pinned) || (b.date || '').localeCompare(a.date || ''));
+
+// Text in the editor is shown as HTML, so the rich text editor can display it.
+// Older records hold Markdown, which is converted here. Saving stores HTML.
+function toEditable(fields, record) {
+  const out = { ...record };
+  for (const f of fields) {
+    if (f.type !== 'markdown' || out[f.key] == null) continue;
+    out[f.key] = f.i18n
+      ? Object.fromEntries(Object.entries(out[f.key]).map(([l, v]) => [l, markdown(v)]))
+      : markdown(out[f.key]);
+  }
+  return out;
+}
 
 // ---- app ------------------------------------------------------------------
 
@@ -98,15 +111,17 @@ export function createApp(options = {}) {
     settings: settingsFields,
     translation: translationEnabled(),
   }));
-  adminApi.get('/settings', wrap(async (req, res) => res.json(await store.getSettings())));
+  adminApi.get('/settings', wrap(async (req, res) => res.json(toEditable(settingsFields, await store.getSettings()))));
   adminApi.put('/settings', express.json({ limit: '1mb' }), wrap(async (req, res) =>
     res.json(await store.saveSettings(req.body))));
   adminApi.post('/upload', upload.single('file'), wrap(async (req, res) => {
     if (!req.file) throw new store.HttpError(400, 'Choose a file to upload');
     res.json({ url: await store.saveUpload(req.file) });
   }));
-  adminApi.get('/:collection', wrap(async (req, res) =>
-    res.json(await store.listRecords(req.params.collection))));
+  adminApi.get('/:collection', wrap(async (req, res) => {
+    const c = store.assertCollection(req.params.collection);
+    res.json((await store.listRecords(req.params.collection)).map((r) => toEditable(c.fields, r)));
+  }));
   adminApi.post('/:collection', express.json({ limit: '2mb' }), wrap(async (req, res) =>
     res.json(await store.saveRecord(req.params.collection, req.body))));
   adminApi.delete('/:collection/:id', wrap(async (req, res) => {
@@ -115,6 +130,7 @@ export function createApp(options = {}) {
   }));
 
   app.use('/admin/api', adminApi);
+  app.use('/admin/vendor', requireAdmin, express.static(path.join(ROOT, 'node_modules', 'quill', 'dist'), { maxAge: '7d' }));
   app.use('/admin', requireAdmin, express.static(ADMIN_DIR, { index: 'index.html' }));
 
   // ---- public site ----

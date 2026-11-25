@@ -13,8 +13,7 @@ export const LANG_OPTIONS = [
   { value: 'multi', label: 'Multilingual' },
 ];
 
-const MD =
-  'Leave a blank line between paragraphs. You can use **bold**, *italic*, [link text](https://example.org), ## headings and - bullet points.';
+const MD = 'Use the toolbar to format text: headings, bold, italic, links, lists and quotes.';
 
 const titleField = () => ({ key: 'title', label: 'Title', type: 'text', i18n: true, required: true });
 const imageField = (label = 'Image (optional)') => ({

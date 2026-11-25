@@ -102,6 +102,36 @@ async function renderList(name) {
   }));
 }
 
+// ---- rich text ------------------------------------------------------------
+
+const TOOLBAR = [
+  [{ header: [2, 3, false] }],
+  ['bold', 'italic', 'underline'],
+  ['link'],
+  [{ list: 'ordered' }, { list: 'bullet' }],
+  ['blockquote'],
+  ['clean'],
+];
+const rteField = (name, value) =>
+  `<div class="rte-wrap"><div class="rte" data-name="${esc(name)}"></div></div><textarea name="${esc(name)}" hidden>${esc(value)}</textarea>`;
+
+function initEditors(root) {
+  root.querySelectorAll('.rte').forEach((el) => {
+    const ta = root.querySelector(`textarea[name="${el.dataset.name}"]`);
+    const q = new Quill(el, { theme: 'snow', modules: { toolbar: TOOLBAR } });
+    q.clipboard.dangerouslyPasteHTML(ta?.value || '', 'silent');
+    el._quill = q;
+  });
+}
+
+function syncEditors(root) {
+  root.querySelectorAll('.rte').forEach((el) => {
+    const ta = root.querySelector(`textarea[name="${el.dataset.name}"]`);
+    const html = el._quill.root.innerHTML;
+    ta.value = html === '<p><br></p>' ? '' : html;
+  });
+}
+
 // ---- forms ----------------------------------------------------------------
 
 function previewHtml(type, val) {
@@ -119,20 +149,24 @@ function fieldHtml(f, val, opts) {
     // values, so saving doesn't re-translate text that hasn't changed.
     const obj = typeof val === 'string' ? { en: val } : val || {};
     const multiline = f.type === 'markdown' || f.type === 'textarea';
-    const control = multiline
-      ? `<textarea name="${f.key}.en" rows="${f.type === 'markdown' ? 6 : 3}" lang="en">${esc(obj.en)}</textarea>`
-      : `<input type="text" name="${f.key}.en" value="${esc(obj.en)}" lang="en"${f.required ? ' required' : ''}>`;
+    const control = f.type === 'markdown'
+      ? rteField(`${f.key}.en`, obj.en)
+      : multiline
+        ? `<textarea name="${f.key}.en" rows="${f.type === 'markdown' ? 6 : 3}" lang="en">${esc(obj.en)}</textarea>`
+        : `<input type="text" name="${f.key}.en" value="${esc(obj.en)}" lang="en"${f.required ? ' required' : ''}>`;
     const hidden = ['es', 'pt'].map((l) => `<input type="hidden" name="${f.key}.${l}" value="${esc(obj[l])}">`).join('');
-    return `<fieldset class="i18n"><legend>${label}</legend>${help}<label class="lang-field one"><span>English</span>${control}</label><p class="help">Spanish and Portuguese are filled in automatically when you save.</p>${hidden}</fieldset>`;
+    return `<fieldset class="i18n"><legend>${label}</legend>${help}<div class="lang-field one"><span>English</span>${control}</div><p class="help">Spanish and Portuguese are filled in automatically when you save.</p>${hidden}</fieldset>`;
   }
 
   if (f.i18n) {
     const obj = typeof val === 'string' ? { en: val } : val || {};
     const multiline = f.type === 'markdown' || f.type === 'textarea';
     const autoNote = (l) => (obj[l] && opts.auto?.[l] ? ' <em class="auto">auto-translated: please check</em>' : '');
-    const inputs = LANGS.map(([l, name]) => `<label class="lang-field"><span>${name}${autoNote(l)}</span>${multiline
-      ? `<textarea name="${f.key}.${l}" rows="${f.type === 'markdown' ? 6 : 3}" lang="${l}">${esc(obj[l])}</textarea>`
-      : `<input type="text" name="${f.key}.${l}" value="${esc(obj[l])}" lang="${l}"${f.required && l === 'en' ? ' required' : ''}>`}</label>`).join('');
+    const inputs = LANGS.map(([l, name]) => `<div class="lang-field"><span>${name}${autoNote(l)}</span>${f.type === 'markdown'
+      ? rteField(`${f.key}.${l}`, obj[l])
+      : multiline
+        ? `<textarea name="${f.key}.${l}" rows="${f.type === 'markdown' ? 6 : 3}" lang="${l}">${esc(obj[l])}</textarea>`
+        : `<input type="text" name="${f.key}.${l}" value="${esc(obj[l])}" lang="${l}"${f.required && l === 'en' ? ' required' : ''}>`}</div>`).join('');
     return `<fieldset class="i18n"><legend>${label}</legend>${help}${inputs}</fieldset>`;
   }
 
@@ -143,8 +177,10 @@ function fieldHtml(f, val, opts) {
   const id = `f-${f.key}`;
   const req = f.required ? ' required' : '';
   let control;
-  if (f.type === 'markdown' || f.type === 'textarea') {
-    control = `<textarea id="${id}" name="${f.key}" rows="${f.type === 'markdown' ? 7 : 3}">${esc(val)}</textarea>`;
+  if (f.type === 'markdown') {
+    control = rteField(f.key, val);
+  } else if (f.type === 'textarea') {
+    control = `<textarea id="${id}" name="${f.key}" rows="3">${esc(val)}</textarea>`;
   } else if (f.type === 'select') {
     control = `<select id="${id}" name="${f.key}">${(f.options || []).map((o) =>
       `<option value="${esc(o.value)}" ${o.value === val ? 'selected' : ''}>${esc(o.label)}</option>`).join('')}</select>`;
@@ -182,11 +218,13 @@ function collectForm(fields, form) {
 }
 
 function bindForm(form, fields, onSave) {
+  initEditors(form);
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = form.querySelector('button[type=submit]');
     btn.disabled = true;
     try {
+      syncEditors(form);
       await onSave(collectForm(fields, form));
     } catch (err) {
       toast(err.message, true);

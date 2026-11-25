@@ -34,7 +34,7 @@ async function deepl(texts, lang) {
       'Content-Type': 'application/json',
       Authorization: `DeepL-Auth-Key ${key}`,
     },
-    body: JSON.stringify({ text: texts, source_lang: 'EN', target_lang: DEEPL_CODE[lang] }),
+    body: JSON.stringify({ text: texts, source_lang: 'EN', target_lang: DEEPL_CODE[lang], tag_handling: 'html' }),
     signal: AbortSignal.timeout(20000),
   });
   if (!res.ok) throw new Error(`the translation service answered ${res.status}`);
